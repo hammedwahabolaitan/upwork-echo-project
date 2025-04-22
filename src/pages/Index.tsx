@@ -1,26 +1,12 @@
-
-import Header from "@/components/upwork/Header";
-import HeroSection from "@/components/upwork/HeroSection";
-import TrustedBy from "@/components/upwork/TrustedBy";
-import HowItWorks from "@/components/upwork/HowItWorks";
-import Categories from "@/components/upwork/Categories";
-import Testimonials from "@/components/upwork/Testimonials";
-import CTASection from "@/components/upwork/CTASection";
-import Footer from "@/components/upwork/Footer";
+// Update this page (the content is just a fallback if you fail to update the page)
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow">
-        <HeroSection />
-        <TrustedBy />
-        <HowItWorks />
-        <Categories />
-        <Testimonials />
-        <CTASection />
-      </main>
-      <Footer />
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
+        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+      </div>
     </div>
   );
 };
