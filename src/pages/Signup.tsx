@@ -1,8 +1,11 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Layout from "@/components/upwork/Layout";
+import { register } from "@/services/api";
+import { toast } from "@/components/ui/sonner";
 
 const Signup = () => {
   const [firstName, setFirstName] = useState("");
@@ -10,11 +13,38 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accountType, setAccountType] = useState("client");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signup attempt with:", { firstName, lastName, email, password, accountType });
-    // In a real app, this would handle user registration
+    setIsLoading(true);
+    
+    try {
+      await register({
+        firstName,
+        lastName,
+        email,
+        password,
+        accountType: accountType as "client" | "freelancer",
+      });
+      
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created. Please log in.",
+      });
+      
+      navigate("/login");
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Registration failed",
+        description: error instanceof Error ? error.message : "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -39,30 +69,32 @@ const Signup = () => {
                   <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
                     First name
                   </label>
-                  <input
+                  <Input
                     id="first-name"
                     name="first-name"
                     type="text"
                     required
-                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-upwork-green focus:border-upwork-green"
+                    className="mt-1"
                     placeholder="First name"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
                   <label htmlFor="last-name" className="block text-sm font-medium text-gray-700">
                     Last name
                   </label>
-                  <input
+                  <Input
                     id="last-name"
                     name="last-name"
                     type="text"
                     required
-                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-upwork-green focus:border-upwork-green"
+                    className="mt-1"
                     placeholder="Last name"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -70,33 +102,35 @@ const Signup = () => {
                 <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
                   Email address
                 </label>
-                <input
+                <Input
                   id="email-address"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
-                  className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-upwork-green focus:border-upwork-green"
+                  className="mt-1"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
-                <input
+                <Input
                   id="password"
                   name="password"
                   type="password"
                   autoComplete="new-password"
                   required
-                  className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-upwork-green focus:border-upwork-green"
+                  className="mt-1"
                   placeholder="Password (8+ characters)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   minLength={8}
+                  disabled={isLoading}
                 />
               </div>
 
@@ -111,6 +145,7 @@ const Signup = () => {
                       className="h-4 w-4 text-upwork-green focus:ring-upwork-green border-gray-300"
                       checked={accountType === "client"}
                       onChange={() => setAccountType("client")}
+                      disabled={isLoading}
                     />
                     <label htmlFor="account-type-client" className="ml-3 block text-sm font-medium text-gray-700">
                       Hire for a project
@@ -124,6 +159,7 @@ const Signup = () => {
                       className="h-4 w-4 text-upwork-green focus:ring-upwork-green border-gray-300"
                       checked={accountType === "freelancer"}
                       onChange={() => setAccountType("freelancer")}
+                      disabled={isLoading}
                     />
                     <label htmlFor="account-type-freelancer" className="ml-3 block text-sm font-medium text-gray-700">
                       Work as a freelancer
@@ -140,6 +176,7 @@ const Signup = () => {
                 type="checkbox"
                 required
                 className="h-4 w-4 text-upwork-green focus:ring-upwork-green border-gray-300 rounded"
+                disabled={isLoading}
               />
               <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-900">
                 I agree to the Upwork <a href="#" className="text-upwork-green hover:text-upwork-darkGreen">Terms of Service</a> and <a href="#" className="text-upwork-green hover:text-upwork-darkGreen">Privacy Policy</a>
@@ -150,8 +187,9 @@ const Signup = () => {
               <Button
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-upwork-green hover:bg-upwork-darkGreen focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-upwork-green"
+                disabled={isLoading}
               >
-                Create my account
+                {isLoading ? "Creating account..." : "Create my account"}
               </Button>
             </div>
           </form>
