@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/upwork/Layout";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -24,17 +23,15 @@ const Login = () => {
     
     try {
       await login(email, password);
-      toast({
-        title: "Login successful",
-        description: "You have successfully logged in.",
+      toast("Login successful", {
+        description: "You have successfully logged in."
       });
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Login error:", error);
-      toast({
-        title: "Login failed",
+      toast("Login failed", {
         description: error instanceof Error ? error.message : "Invalid credentials",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);

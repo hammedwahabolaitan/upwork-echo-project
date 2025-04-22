@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -7,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getJobs, Job } from "@/services/api";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/utils/toastUtils";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -21,10 +20,9 @@ const Dashboard = () => {
         setJobs(data);
       } catch (error) {
         console.error("Error fetching jobs:", error);
-        toast({
-          title: "Error",
+        toast("Error", {
           description: "Failed to load jobs",
-          variant: "destructive",
+          variant: "destructive"
         });
       } finally {
         setIsLoading(false);

@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { login as apiLogin, logout as apiLogout, getCurrentUser, User } from "@/services/api";
+import { toast } from "@/utils/toastUtils";
 
 interface AuthContextType {
   user: User | null;
@@ -38,6 +39,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     apiLogout();
     setUser(null);
+    toast("Logged out", {
+      description: "You have been successfully logged out"
+    });
   };
 
   return (

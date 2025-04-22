@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -9,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/utils/toastUtils";
 import { useAuth } from "@/contexts/AuthContext";
 
 const JobDetail = () => {
@@ -29,10 +28,9 @@ const JobDetail = () => {
         setJob(data);
       } catch (error) {
         console.error("Error fetching job details:", error);
-        toast({
-          title: "Error",
+        toast("Error", {
           description: "Failed to load job details",
-          variant: "destructive",
+          variant: "destructive"
         });
       } finally {
         setIsLoading(false);
@@ -46,27 +44,24 @@ const JobDetail = () => {
     e.preventDefault();
     
     if (!isAuthenticated) {
-      toast({
-        title: "Authentication required",
+      toast("Authentication required", {
         description: "Please log in to submit a proposal",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
     
     if (!coverLetter || !bidAmount) {
-      toast({
-        title: "Incomplete proposal",
+      toast("Incomplete proposal", {
         description: "Please fill in all required fields",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
     
     // In a real app, this would submit the proposal to the API
-    toast({
-      title: "Proposal submitted",
-      description: "Your proposal has been submitted successfully",
+    toast("Proposal submitted", {
+      description: "Your proposal has been submitted successfully"
     });
     
     // Reset form
@@ -113,7 +108,6 @@ const JobDetail = () => {
         </div>
 
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Main content */}
           <div className="w-full md:w-2/3">
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <div className="flex justify-between items-start">
@@ -205,7 +199,6 @@ const JobDetail = () => {
             )}
           </div>
           
-          {/* Sidebar */}
           <div className="w-full md:w-1/3">
             <Card className="mb-6">
               <CardHeader>

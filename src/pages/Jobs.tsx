@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -8,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/utils/toastUtils";
 
 const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -26,10 +25,9 @@ const Jobs = () => {
         setFilteredJobs(data);
       } catch (error) {
         console.error("Error fetching jobs:", error);
-        toast({
-          title: "Error",
+        toast("Error", {
           description: "Failed to load jobs",
-          variant: "destructive",
+          variant: "destructive"
         });
       } finally {
         setIsLoading(false);
@@ -49,12 +47,10 @@ const Jobs = () => {
     setCurrentPage(1);
   }, [searchTerm, jobs]);
 
-  // Get current jobs
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
   const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
 
-  // Calculate total pages
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +68,6 @@ const Jobs = () => {
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Filters sidebar */}
           <aside className="w-full md:w-1/4">
             <Card>
               <CardHeader>
@@ -165,7 +160,6 @@ const Jobs = () => {
             </Card>
           </aside>
 
-          {/* Main content */}
           <main className="w-full md:w-3/4">
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
@@ -212,7 +206,6 @@ const Jobs = () => {
                   </Card>
                 ))}
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                   <Pagination className="mt-6">
                     <PaginationContent>
