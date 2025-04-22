@@ -52,6 +52,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				upwork: {
+					green: "#14a800",
+					darkBlue: "#1d4354",
+					teal: "#13544e",
+					lightGreen: "#95df00",
+					darkGreen: "#108a00",
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
