@@ -1,16 +1,16 @@
 
 import Layout from "@/components/upwork/Layout";
-import HeroSection from "@/components/upwork/HeroSection";
+import TalentHeroSection from "@/components/upwork/talent/HeroSection";
 import TrustedBy from "@/components/upwork/TrustedBy";
 import HowItWorks from "@/components/upwork/HowItWorks";
 import Categories from "@/components/upwork/Categories";
 import Testimonials from "@/components/upwork/Testimonials";
 import CTASection from "@/components/upwork/CTASection";
 
-const Index = () => {
+const FindTalent = () => {
   return (
     <Layout>
-      <HeroSection />
+      <TalentHeroSection />
       <TrustedBy />
       <HowItWorks />
       <Categories />
@@ -20,4 +20,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default FindTalent;

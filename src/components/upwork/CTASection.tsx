@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   return (
@@ -11,13 +12,13 @@ const CTASection = () => {
         </h2>
         <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
           <div className="inline-flex rounded-md shadow">
-            <Button className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-upwork-green bg-white hover:bg-gray-100">
-              Find Talent
+            <Button asChild className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-upwork-green bg-white hover:bg-gray-100">
+              <Link to="/find-talent">Find Talent</Link>
             </Button>
           </div>
           <div className="ml-3 inline-flex rounded-md shadow">
-            <Button variant="outline" className="inline-flex items-center justify-center px-5 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-upwork-darkGreen">
-              Find Work
+            <Button asChild variant="outline" className="inline-flex items-center justify-center px-5 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-upwork-darkGreen">
+              <Link to="/find-work">Find Work</Link>
             </Button>
           </div>
         </div>

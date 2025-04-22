@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-const HeroSection = () => {
+const TalentHeroSection = () => {
   return (
     <div className="bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -10,22 +10,22 @@ const HeroSection = () => {
           <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
             <div className="sm:text-center lg:text-left">
               <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-                <span className="block">How work</span>
-                <span className="block text-upwork-green">should work</span>
+                <span className="block">Hire the best</span>
+                <span className="block text-upwork-green">freelancers for any job</span>
               </h1>
               <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto lg:mx-0">
-                Forget the old rules. You can have the best people. 
-                Right now. Right here.
+                Access expert talent to fill your skill gaps and accomplish your business goals. 
+                Choose from skilled professionals across the globe.
               </p>
               <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                 <div className="rounded-md shadow">
-                  <Button asChild className="w-full flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-upwork-green hover:bg-upwork-darkGreen md:py-4 md:text-lg md:px-10">
-                    <Link to="/find-talent">Find Talent</Link>
+                  <Button className="w-full flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-upwork-green hover:bg-upwork-darkGreen md:py-4 md:text-lg md:px-10">
+                    Post a Job
                   </Button>
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-3">
-                  <Button asChild variant="outline" className="w-full flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-upwork-green border-upwork-green hover:text-white hover:bg-upwork-green md:py-4 md:text-lg md:px-10">
-                    <Link to="/find-work">Find Work</Link>
+                  <Button variant="outline" className="w-full flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-upwork-green border-upwork-green hover:text-white hover:bg-upwork-green md:py-4 md:text-lg md:px-10">
+                    Browse Talent
                   </Button>
                 </div>
               </div>
@@ -35,8 +35,8 @@ const HeroSection = () => {
           <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
             <img 
               className="h-56 w-full object-cover object-center sm:h-72 md:h-96 lg:w-full lg:h-full" 
-              src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d" 
-              alt="Person working on laptop" 
+              src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" 
+              alt="Hiring talent" 
             />
           </div>
         </div>
@@ -45,4 +45,4 @@ const HeroSection = () => {
   );
 };
 
-export default HeroSection;
+export default TalentHeroSection;

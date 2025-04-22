@@ -1,42 +1,44 @@
 
+import { Link } from "react-router-dom";
+
 const Footer = () => {
   const footerLinks = {
     "For Clients": [
-      "How to Hire",
-      "Talent Marketplace",
-      "Project Catalog",
-      "Talent Scout",
-      "Enterprise",
-      "Payroll Services",
-      "Direct Contracts",
-      "Hire Worldwide"
+      { title: "How to Hire", path: "/find-talent" },
+      { title: "Talent Marketplace", path: "/find-talent" },
+      { title: "Project Catalog", path: "/find-talent" },
+      { title: "Talent Scout", path: "/find-talent" },
+      { title: "Enterprise", path: "/enterprise" },
+      { title: "Payroll Services", path: "/find-talent" },
+      { title: "Direct Contracts", path: "/find-talent" },
+      { title: "Hire Worldwide", path: "/find-talent" }
     ],
     "For Talent": [
-      "How to Find Work",
-      "Direct Contracts",
-      "Find Freelance Jobs Worldwide",
-      "How to Market Yourself",
-      "Profile Creation Tips",
-      "Community Discussions"
+      { title: "How to Find Work", path: "/find-work" },
+      { title: "Direct Contracts", path: "/find-work" },
+      { title: "Find Freelance Jobs Worldwide", path: "/find-work" },
+      { title: "How to Market Yourself", path: "/find-work" },
+      { title: "Profile Creation Tips", path: "/find-work" },
+      { title: "Community Discussions", path: "/find-work" }
     ],
     "Resources": [
-      "Help & Support",
-      "Success Stories",
-      "Upwork Reviews",
-      "Resources",
-      "Blog",
-      "Community",
-      "Affiliate Program"
+      { title: "Help & Support", path: "/why-upwork" },
+      { title: "Success Stories", path: "/why-upwork" },
+      { title: "Upwork Reviews", path: "/why-upwork" },
+      { title: "Resources", path: "/why-upwork" },
+      { title: "Blog", path: "/why-upwork" },
+      { title: "Community", path: "/why-upwork" },
+      { title: "Affiliate Program", path: "/why-upwork" }
     ],
     "Company": [
-      "About Us",
-      "Leadership",
-      "Investor Relations",
-      "Careers",
-      "Our Impact",
-      "Press",
-      "Contact Us",
-      "Trust, Safety & Security"
+      { title: "About Us", path: "/why-upwork" },
+      { title: "Leadership", path: "/why-upwork" },
+      { title: "Investor Relations", path: "/why-upwork" },
+      { title: "Careers", path: "/why-upwork" },
+      { title: "Our Impact", path: "/why-upwork" },
+      { title: "Press", path: "/why-upwork" },
+      { title: "Contact Us", path: "/why-upwork" },
+      { title: "Trust, Safety & Security", path: "/why-upwork" }
     ]
   };
 
@@ -50,9 +52,9 @@ const Footer = () => {
               <ul className="mt-4 space-y-2">
                 {links.map((link, index) => (
                   <li key={index}>
-                    <a href="#" className="text-base text-gray-300 hover:text-white">
-                      {link}
-                    </a>
+                    <Link to={link.path} className="text-base text-gray-300 hover:text-white">
+                      {link.title}
+                    </Link>
                   </li>
                 ))}
               </ul>
