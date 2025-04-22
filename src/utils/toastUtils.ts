@@ -10,7 +10,7 @@ interface ToastOptions {
 
 export const toast = (title: string, options?: ToastOptions) => {
   sonnerToast(title, {
-    description: options?.description,
-    variant: options?.variant
+    description: options?.description
+    // We need to remove the variant property as it's not supported by Sonner's ExternalToast type
   });
 };

@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/upwork/Layout";
 import { register } from "@/services/api";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/utils/toastUtils";
 
 const Signup = () => {
   const [firstName, setFirstName] = useState("");
@@ -29,18 +28,15 @@ const Signup = () => {
         accountType: accountType as "client" | "freelancer",
       });
       
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created. Please log in.",
+      toast("Registration successful", {
+        description: "Your account has been created. Please log in."
       });
       
       navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);
-      toast({
-        title: "Registration failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
+      toast("Registration failed", {
+        description: error instanceof Error ? error.message : "Something went wrong"
       });
     } finally {
       setIsLoading(false);

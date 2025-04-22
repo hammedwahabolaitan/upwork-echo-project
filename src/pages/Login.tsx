@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/upwork/Layout";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { toast } from "@/utils/toastUtils";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -30,8 +31,7 @@ const Login = () => {
     } catch (error) {
       console.error("Login error:", error);
       toast("Login failed", {
-        description: error instanceof Error ? error.message : "Invalid credentials",
-        variant: "destructive"
+        description: error instanceof Error ? error.message : "Invalid credentials"
       });
     } finally {
       setIsLoading(false);
