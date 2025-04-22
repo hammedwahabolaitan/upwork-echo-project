@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -9,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/utils/toastUtils";
 import { getProfile, updateProfile, User } from "@/services/api";
 
 const Profile = () => {
@@ -47,10 +46,8 @@ const Profile = () => {
         });
       } catch (error) {
         console.error("Error fetching profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load profile",
-          variant: "destructive",
+        toast("Error loading profile", {
+          description: "Failed to load profile"
         });
       } finally {
         setIsLoading(false);
@@ -69,10 +66,8 @@ const Profile = () => {
     e.preventDefault();
     
     if (!isAuthenticated || !isOwnProfile) {
-      toast({
-        title: "Access denied",
-        description: "You can only update your own profile",
-        variant: "destructive",
+      toast("Access denied", {
+        description: "You can only update your own profile"
       });
       return;
     }
@@ -100,16 +95,13 @@ const Profile = () => {
       
       setIsEditing(false);
       
-      toast({
-        title: "Success",
-        description: "Your profile has been updated successfully",
+      toast("Profile updated", {
+        description: "Your profile has been updated successfully"
       });
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive",
+      toast("Error updating profile", {
+        description: "Failed to update profile"
       });
     } finally {
       setIsLoading(false);

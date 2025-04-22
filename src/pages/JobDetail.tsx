@@ -28,9 +28,8 @@ const JobDetail = () => {
         setJob(data);
       } catch (error) {
         console.error("Error fetching job details:", error);
-        toast("Error", {
-          description: "Failed to load job details",
-          variant: "destructive"
+        toast("Error loading job details", {
+          description: "Failed to load job details"
         });
       } finally {
         setIsLoading(false);
@@ -45,16 +44,14 @@ const JobDetail = () => {
     
     if (!isAuthenticated) {
       toast("Authentication required", {
-        description: "Please log in to submit a proposal",
-        variant: "destructive"
+        description: "Please log in to submit a proposal"
       });
       return;
     }
     
     if (!coverLetter || !bidAmount) {
       toast("Incomplete proposal", {
-        description: "Please fill in all required fields",
-        variant: "destructive"
+        description: "Please fill in all required fields"
       });
       return;
     }

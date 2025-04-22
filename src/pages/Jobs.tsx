@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -25,9 +26,8 @@ const Jobs = () => {
         setFilteredJobs(data);
       } catch (error) {
         console.error("Error fetching jobs:", error);
-        toast("Error", {
-          description: "Failed to load jobs",
-          variant: "destructive"
+        toast("Error loading jobs", {
+          description: "Failed to load jobs"
         });
       } finally {
         setIsLoading(false);

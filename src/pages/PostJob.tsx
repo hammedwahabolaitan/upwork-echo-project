@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/utils/toastUtils";
 import { createJob } from "@/services/api";
 
 const PostJob = () => {
@@ -22,6 +22,7 @@ const PostJob = () => {
     duration: "Less than 1 month",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -32,10 +33,8 @@ const PostJob = () => {
     e.preventDefault();
     
     if (!isAuthenticated || user?.accountType !== "client") {
-      toast({
-        title: "Access denied",
-        description: "Only clients can post jobs",
-        variant: "destructive",
+      toast("Access denied", {
+        description: "Only clients can post jobs"
       });
       return;
     }
@@ -51,22 +50,23 @@ const PostJob = () => {
         duration: formData.duration,
       });
       
-      toast({
-        title: "Success",
-        description: "Your job has been posted successfully",
+      toast("Success", {
+        description: "Your job has been posted successfully"
       });
       
       navigate("/dashboard");
     } catch (error) {
       console.error("Error posting job:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to post job",
-        variant: "destructive",
+      toast("Error posting job", {
+        description: error instanceof Error ? error.message : "Failed to post job"
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const goToTab = (tab: string) => {
+    setActiveTab(tab);
   };
 
   return (
@@ -75,7 +75,7 @@ const PostJob = () => {
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">Post a Job</h1>
           
-          <Tabs defaultValue="basic">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="details">Details</TabsTrigger>
@@ -123,7 +123,7 @@ const PostJob = () => {
                     <Button variant="outline" type="button" disabled>
                       Back
                     </Button>
-                    <Button type="button" onClick={() => document.querySelector('[data-value="details"]')?.click()}>
+                    <Button type="button" onClick={() => goToTab("details")}>
                       Continue
                     </Button>
                   </CardFooter>
@@ -184,13 +184,13 @@ const PostJob = () => {
                     <Button
                       variant="outline"
                       type="button"
-                      onClick={() => document.querySelector('[data-value="basic"]')?.click()}
+                      onClick={() => goToTab("basic")}
                     >
                       Back
                     </Button>
                     <Button
                       type="button"
-                      onClick={() => document.querySelector('[data-value="budget"]')?.click()}
+                      onClick={() => goToTab("budget")}
                     >
                       Continue
                     </Button>
@@ -244,7 +244,7 @@ const PostJob = () => {
                     <Button
                       variant="outline"
                       type="button"
-                      onClick={() => document.querySelector('[data-value="details"]')?.click()}
+                      onClick={() => goToTab("details")}
                     >
                       Back
                     </Button>

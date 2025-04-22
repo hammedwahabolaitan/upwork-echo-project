@@ -8,9 +8,10 @@ interface ToastOptions {
   variant?: ToastVariant;
 }
 
-export const toast = (title: string, options?: ToastOptions) => {
-  sonnerToast(title, {
+export const toast = (message: string, options?: ToastOptions) => {
+  // Sonner expects a simple format without 'title' property
+  sonnerToast(message, {
     description: options?.description
-    // We need to remove the variant property as it's not supported by Sonner's ExternalToast type
+    // Variant is handled separately in Sonner
   });
 };
