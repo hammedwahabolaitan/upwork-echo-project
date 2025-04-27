@@ -62,7 +62,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>
-                      {user?.firstName} {user?.lastName}
+                      {user?.firstName || ""} {user?.lastName || ""}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>

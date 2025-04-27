@@ -165,10 +165,10 @@ const Profile = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h1 className="text-2xl font-bold">
-                      {profile.firstName} {profile.lastName}
+                      {profile.firstName || ""} {profile.lastName || ""}
                     </h1>
                     <p className="text-gray-600 mt-1 capitalize">
-                      {profile.accountType} {profile.accountType === 'freelancer' && profile.hourlyRate && `• $${profile.hourlyRate}/hr`}
+                      {profile.accountType || ""} {profile.accountType === 'freelancer' && profile.hourlyRate && `• $${profile.hourlyRate}/hr`}
                     </p>
                   </div>
                   

@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 
 const API_URL = "http://localhost:5000/api";
@@ -80,11 +79,20 @@ export const login = async (credentials: LoginCredentials) => {
     
     const data = await handleResponse(response);
     
+    // Map snake_case to camelCase for consistent frontend use
+    const user = {
+      ...data.user,
+      firstName: data.user.first_name,
+      lastName: data.user.last_name,
+      accountType: data.user.account_type,
+      hourlyRate: data.user.hourly_rate
+    };
+    
     // Save token and user data
     localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("user", JSON.stringify(user));
     
-    return data;
+    return { ...data, user };
   } catch (error) {
     console.error("Login error:", error);
     throw error;
@@ -119,7 +127,14 @@ export const isAuthenticated = () => {
 
 export const getCurrentUser = (): User | null => {
   const userStr = localStorage.getItem("user");
-  return userStr ? JSON.parse(userStr) : null;
+  if (!userStr) return null;
+  
+  try {
+    return JSON.parse(userStr);
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return null;
+  }
 };
 
 // Jobs APIs
@@ -174,16 +189,41 @@ export const getProfile = async (id: number) => {
 
 export const updateProfile = async (profileData: ProfileUpdateData) => {
   try {
+    // Convert camelCase to snake_case for API
+    const apiData = {
+      first_name: profileData.firstName,
+      last_name: profileData.lastName,
+      bio: profileData.bio,
+      skills: profileData.skills,
+      hourly_rate: profileData.hourlyRate
+    };
+    
     const response = await fetch(`${API_URL}/profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${getToken()}`,
       },
-      body: JSON.stringify(profileData),
+      body: JSON.stringify(apiData),
     });
     
-    return await handleResponse(response);
+    const data = await handleResponse(response);
+    
+    // Update stored user data
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const updatedUser = {
+        ...currentUser,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        bio: profileData.bio,
+        skills: profileData.skills,
+        hourlyRate: profileData.hourlyRate
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+    
+    return data;
   } catch (error) {
     console.error("Error updating profile:", error);
     throw error;
