@@ -56,7 +56,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   <DropdownMenuTrigger asChild>
                     <Avatar className="h-8 w-8 cursor-pointer">
                       <AvatarFallback className="bg-upwork-green text-white">
-                        {user?.firstName.charAt(0)}{user?.lastName.charAt(0)}
+                        {user?.firstName?.charAt(0) || "?"}{user?.lastName?.charAt(0) || "?"}
                       </AvatarFallback>
                     </Avatar>
                   </DropdownMenuTrigger>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -34,15 +35,28 @@ const Profile = () => {
       
       try {
         const data = await getProfile(userId);
-        setProfile(data);
+        
+        // Map the snake_case field names from API to camelCase for our component
+        const mappedData = {
+          id: data.id,
+          firstName: data.first_name || "",
+          lastName: data.last_name || "",
+          email: data.email,
+          accountType: data.account_type,
+          bio: data.bio || "",
+          skills: data.skills || "",
+          hourlyRate: data.hourly_rate
+        };
+        
+        setProfile(mappedData);
         
         // Initialize form data
         setFormData({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          bio: data.bio || "",
-          skills: data.skills || "",
-          hourlyRate: data.hourlyRate?.toString() || "",
+          firstName: mappedData.firstName,
+          lastName: mappedData.lastName,
+          bio: mappedData.bio || "",
+          skills: mappedData.skills || "",
+          hourlyRate: mappedData.hourlyRate?.toString() || "",
         });
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -143,7 +157,7 @@ const Profile = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-shrink-0">
                 <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-xl font-semibold">
-                  {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
+                  {profile.firstName?.charAt(0) || "?"}{profile.lastName?.charAt(0) || "?"}
                 </div>
               </div>
               
