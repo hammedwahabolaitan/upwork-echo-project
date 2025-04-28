@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { login as apiLogin, logout as apiLogout, getCurrentUser, User } from "@/services/api";
+import { login as apiLogin, logout as apiLogout, getCurrentUser, User } from "@/services";
 import { toast } from "@/utils/toastUtils";
 
 interface AuthContextType {

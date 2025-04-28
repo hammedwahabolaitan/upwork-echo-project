@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/utils/toastUtils";
-import { getProfile, updateProfile, User } from "@/services/api";
+import { getProfile, updateProfile, User } from "@/services";
+import { API_URL, getToken } from "@/services/config";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileEditForm from "@/components/profile/ProfileEditForm";
 import ProfileContent from "@/components/profile/ProfileContent";

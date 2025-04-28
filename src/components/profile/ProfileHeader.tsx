@@ -1,5 +1,5 @@
 
-import { User } from "@/services/api";
+import { User } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";

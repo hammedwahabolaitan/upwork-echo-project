@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
-import { getJobById, updateJob, Job } from "@/services/api";
+import { getJobById, updateJob, Job } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

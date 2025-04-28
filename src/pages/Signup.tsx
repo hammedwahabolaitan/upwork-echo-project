@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/upwork/Layout";
-import { register } from "@/services/api";
+import { register } from "@/services";
 import { toast } from "@/utils/toastUtils";
 
 const Signup = () => {

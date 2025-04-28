@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
-import { getJobById, Job, getCurrentUser, updateJobStatus } from "@/services/api";
+import { getJobById, Job, getCurrentUser, updateJobStatus } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
