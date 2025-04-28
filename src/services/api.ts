@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 
 const API_URL = "http://localhost:5000/api";
@@ -13,6 +12,7 @@ export interface User {
   bio?: string;
   skills?: string;
   hourlyRate?: number;
+  avatarUrl?: string;
 }
 
 export interface Job {

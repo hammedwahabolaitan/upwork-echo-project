@@ -1,6 +1,8 @@
+
 import { User } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfileHeaderProps {
   profile: User;
@@ -14,9 +16,12 @@ const ProfileHeader = ({ profile, isOwnProfile, isEditing, onEditClick }: Profil
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
       <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-shrink-0">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-xl font-semibold">
-            {profile.firstName?.charAt(0) || "?"}{profile.lastName?.charAt(0) || "?"}
-          </div>
+          <Avatar className="w-24 h-24">
+            <AvatarImage src={profile.avatarUrl} alt={`${profile.firstName} ${profile.lastName}`} />
+            <AvatarFallback className="text-xl">
+              {profile.firstName?.charAt(0) || "?"}{profile.lastName?.charAt(0) || "?"}
+            </AvatarFallback>
+          </Avatar>
         </div>
         
         <div className="flex-grow">

@@ -1,9 +1,10 @@
-
 import { User } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Camera } from "lucide-react";
 
 interface ProfileEditFormProps {
   formData: {
@@ -17,10 +18,26 @@ interface ProfileEditFormProps {
   isLoading: boolean;
   onSubmit: (e: React.FormEvent) => Promise<void>;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onImageUpload: (file: File) => void;
   onCancel: () => void;
 }
 
-const ProfileEditForm = ({ formData, profile, isLoading, onSubmit, onChange, onCancel }: ProfileEditFormProps) => {
+const ProfileEditForm = ({ 
+  formData, 
+  profile, 
+  isLoading, 
+  onSubmit, 
+  onChange,
+  onImageUpload, 
+  onCancel 
+}: ProfileEditFormProps) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onImageUpload(file);
+    }
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -29,6 +46,30 @@ const ProfileEditForm = ({ formData, profile, isLoading, onSubmit, onChange, onC
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <Avatar className="w-24 h-24">
+                <AvatarImage src={profile.avatarUrl} alt={`${profile.firstName} ${profile.lastName}`} />
+                <AvatarFallback className="text-xl">
+                  {profile.firstName?.charAt(0) || "?"}{profile.lastName?.charAt(0) || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <label 
+                htmlFor="avatar-upload" 
+                className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-lg cursor-pointer hover:bg-gray-50"
+              >
+                <Camera className="h-4 w-4" />
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
+              </label>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">

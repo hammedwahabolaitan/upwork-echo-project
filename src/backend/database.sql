@@ -1,4 +1,3 @@
-
 -- Create database
 CREATE DATABASE IF NOT EXISTS upwork_clone;
 USE upwork_clone;
@@ -14,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   bio TEXT,
   skills TEXT,
   hourly_rate DECIMAL(10, 2),
+  avatar_url VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -76,14 +76,13 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 
 -- Sample data
-INSERT INTO users (first_name, last_name, email, password, account_type, bio, skills, hourly_rate)
+INSERT INTO users (first_name, last_name, email, password, account_type, bio, skills, hourly_rate, avatar_url)
 VALUES 
-('John', 'Doe', 'john@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'client', 'Tech company owner', NULL, NULL),
-('Jane', 'Smith', 'jane@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'freelancer', 'Experienced web developer', 'React, Node.js, MySQL', 45.00),
-('Admin', 'User', 'admin@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'admin', 'System Administrator', NULL, NULL);
+('John', 'Doe', 'john@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'client', 'Tech company owner', NULL, NULL, NULL),
+('Jane', 'Smith', 'jane@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'freelancer', 'Experienced web developer', 'React, Node.js, MySQL', 45.00, NULL),
+('Admin', 'User', 'admin@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'admin', 'System Administrator', NULL, NULL, NULL);
 
 INSERT INTO jobs (title, description, budget, skills, duration, client_id, status)
 VALUES 
 ('Frontend Developer Needed', 'Looking for a React expert to build a dashboard', 2000.00, 'React, JavaScript, CSS', '2-4 weeks', 1, 'open'),
 ('Full Stack Web Application', 'E-commerce website with user authentication and payment integration', 5000.00, 'React, Node.js, MySQL, Stripe', '1-2 months', 1, 'open');
-

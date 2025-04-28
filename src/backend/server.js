@@ -1,9 +1,11 @@
-
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,6 +70,35 @@ const isClientOrAdmin = async (req, res, next) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = 'public/uploads';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Not an image! Please upload an image.'), false);
+    }
+  }
+});
 
 // Routes
 // User registration
@@ -411,6 +442,28 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
     res.json({ message: 'Profile updated successfully' });
   } catch (error) {
     console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Upload profile picture
+app.post('/api/profile/avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const avatarUrl = `/uploads/${req.file.filename}`;
+    const userId = req.user.userId;
+
+    await pool.query(
+      'UPDATE users SET avatar_url = ? WHERE id = ?',
+      [avatarUrl, userId]
+    );
+
+    res.json({ avatarUrl });
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

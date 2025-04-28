@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -116,6 +115,45 @@ const Profile = () => {
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    setIsLoading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      const response = await fetch(`${API_URL}/profile/avatar`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      const data = await response.json();
+      
+      setProfile(prev => prev ? {
+        ...prev,
+        avatarUrl: data.avatarUrl
+      } : null);
+      
+      toast("Profile updated", {
+        description: "Your profile picture has been updated successfully"
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast("Error updating profile picture", {
+        description: "Failed to update profile picture"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isLoading && !profile) {
     return (
       <Layout>
@@ -160,6 +198,7 @@ const Profile = () => {
               isLoading={isLoading}
               onSubmit={handleSubmit}
               onChange={handleChange}
+              onImageUpload={handleImageUpload}
               onCancel={() => setIsEditing(false)}
             />
           )}
