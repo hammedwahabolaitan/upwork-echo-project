@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_name VARCHAR(100) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
-  account_type ENUM('client', 'freelancer') NOT NULL,
+  account_type ENUM('client', 'freelancer', 'admin') NOT NULL,
   bio TEXT,
   skills TEXT,
   hourly_rate DECIMAL(10, 2),
@@ -79,9 +79,11 @@ CREATE TABLE IF NOT EXISTS reviews (
 INSERT INTO users (first_name, last_name, email, password, account_type, bio, skills, hourly_rate)
 VALUES 
 ('John', 'Doe', 'john@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'client', 'Tech company owner', NULL, NULL),
-('Jane', 'Smith', 'jane@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'freelancer', 'Experienced web developer', 'React, Node.js, MySQL', 45.00);
+('Jane', 'Smith', 'jane@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'freelancer', 'Experienced web developer', 'React, Node.js, MySQL', 45.00),
+('Admin', 'User', 'admin@example.com', '$2b$10$qQ5Sf4OWUdOlJHEL8JCg1OXVkBw5AfH5AWDR/IbAobQ4GJyEQeCiK', 'admin', 'System Administrator', NULL, NULL);
 
 INSERT INTO jobs (title, description, budget, skills, duration, client_id, status)
 VALUES 
 ('Frontend Developer Needed', 'Looking for a React expert to build a dashboard', 2000.00, 'React, JavaScript, CSS', '2-4 weeks', 1, 'open'),
 ('Full Stack Web Application', 'E-commerce website with user authentication and payment integration', 5000.00, 'React, Node.js, MySQL, Stripe', '1-2 months', 1, 'open');
+

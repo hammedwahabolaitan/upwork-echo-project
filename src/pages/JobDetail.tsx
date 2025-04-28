@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
-import { getJobById, Job } from "@/services/api";
+import { getJobById, Job, getCurrentUser, updateJobStatus } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,13 +11,32 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/utils/toastUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { Calendar, Clock, DollarSign, Users, Award, Briefcase } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [coverLetter, setCoverLetter] = useState("");
   const [bidAmount, setBidAmount] = useState("");
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -66,6 +86,43 @@ const JobDetail = () => {
     setBidAmount("");
   };
 
+  const handleUpdateStatus = async (newStatus: Job['status']) => {
+    if (!job || !id) return;
+    
+    try {
+      await updateJobStatus(parseInt(id), newStatus);
+      setJob({...job, status: newStatus});
+      toast("Job updated", {
+        description: `Job status changed to ${newStatus}`
+      });
+      setStatusDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating job status:", error);
+      toast("Error updating job", {
+        description: "Failed to update job status"
+      });
+    }
+  };
+
+  const getStatusColor = (status: Job['status']) => {
+    switch(status) {
+      case 'open':
+        return "bg-green-100 text-green-800";
+      case 'in_progress':
+        return "bg-blue-100 text-blue-800";
+      case 'completed':
+        return "bg-purple-100 text-purple-800";
+      case 'cancelled':
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const isJobOwner = user?.id === job?.client_id;
+  const isAdmin = user?.accountType === 'admin';
+  const canManageJob = isJobOwner || isAdmin;
+
   if (isLoading) {
     return (
       <Layout>
@@ -109,7 +166,9 @@ const JobDetail = () => {
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <div className="flex justify-between items-start">
                 <h1 className="text-2xl font-bold mb-2">{job.title}</h1>
-                <Badge variant="outline">{job.status}</Badge>
+                <Badge className={getStatusColor(job.status)}>
+                  {job.status.replace('_', ' ')}
+                </Badge>
               </div>
               
               <div className="flex flex-wrap gap-2 my-3">
@@ -121,9 +180,18 @@ const JobDetail = () => {
               </div>
               
               <div className="my-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
-                <div>Posted: {new Date(job.created_at).toLocaleDateString()}</div>
-                <div>Budget: ${job.budget}</div>
-                <div>Duration: {job.duration}</div>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  Posted: {new Date(job.created_at).toLocaleDateString()}
+                </div>
+                <div className="flex items-center gap-1">
+                  <DollarSign className="h-4 w-4" />
+                  Budget: ${job.budget}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  Duration: {job.duration}
+                </div>
               </div>
               
               <div className="border-t pt-4 mt-4">
@@ -137,14 +205,76 @@ const JobDetail = () => {
               </div>
               
               <div className="mt-6">
-                {user?.accountType === 'freelancer' ? (
+                {user?.accountType === 'freelancer' && job.status === 'open' && (
                   <Button className="w-full md:w-auto">Submit a Proposal</Button>
-                ) : user?.accountType === 'client' && user.id === job.client_id ? (
-                  <div className="flex gap-2">
-                    <Button variant="outline">Edit Job</Button>
-                    <Button variant="destructive">Close Job</Button>
+                )}
+                
+                {canManageJob && (
+                  <div className="flex gap-2 mt-2">
+                    <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline">Manage Job</Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Update Job Status</DialogTitle>
+                          <DialogDescription>
+                            Change the status of this job.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button 
+                              variant="outline" 
+                              onClick={() => handleUpdateStatus('open')}
+                              className={job.status === 'open' ? 'border-2 border-green-500' : ''}
+                            >
+                              Open
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => handleUpdateStatus('in_progress')}
+                              className={job.status === 'in_progress' ? 'border-2 border-blue-500' : ''}
+                            >
+                              In Progress
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => handleUpdateStatus('completed')}
+                              className={job.status === 'completed' ? 'border-2 border-purple-500' : ''}
+                            >
+                              Completed
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => handleUpdateStatus('cancelled')}
+                              className={job.status === 'cancelled' ? 'border-2 border-red-500' : ''}
+                            >
+                              Cancelled
+                            </Button>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    
+                    <Button variant="outline" onClick={() => navigate(`/edit-job/${job.id}`)}>
+                      Edit Job
+                    </Button>
+                    
+                    {isAdmin && (
+                      <Button variant="destructive">
+                        Delete Job
+                      </Button>
+                    )}
                   </div>
-                ) : (
+                )}
+                
+                {!isAuthenticated && (
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
                     <p className="text-gray-600 mb-2">You need a freelancer account to apply for jobs</p>
                     <Button asChild variant="outline">
@@ -155,7 +285,7 @@ const JobDetail = () => {
               </div>
             </div>
             
-            {user?.accountType === 'freelancer' && (
+            {user?.accountType === 'freelancer' && job.status === 'open' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Submit a Proposal</CardTitle>

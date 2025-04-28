@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/sonner";
 
 const API_URL = "http://localhost:5000/api";
@@ -8,7 +9,7 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  accountType: "client" | "freelancer";
+  accountType: "client" | "freelancer" | "admin";
   bio?: string;
   skills?: string;
   hourlyRate?: number;
@@ -53,6 +54,25 @@ export interface JobCreateData {
   budget: number;
   skills: string;
   duration: string;
+}
+
+export interface JobUpdateData {
+  title: string;
+  description: string;
+  budget: number;
+  skills: string;
+  duration: string;
+  status: Job['status'];
+}
+
+export interface Proposal {
+  id: number;
+  job_id: number;
+  freelancer_id: number;
+  cover_letter: string;
+  bid_amount: number;
+  status: "pending" | "accepted" | "rejected";
+  created_at: string;
 }
 
 // Helper functions
@@ -172,6 +192,113 @@ export const createJob = async (jobData: JobCreateData) => {
     return await handleResponse(response);
   } catch (error) {
     console.error("Error creating job:", error);
+    throw error;
+  }
+};
+
+export const updateJob = async (id: number, jobData: JobUpdateData) => {
+  try {
+    const response = await fetch(`${API_URL}/jobs/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify(jobData),
+    });
+    
+    return await handleResponse(response);
+  } catch (error) {
+    console.error("Error updating job:", error);
+    throw error;
+  }
+};
+
+export const updateJobStatus = async (id: number, status: Job['status']) => {
+  try {
+    const response = await fetch(`${API_URL}/jobs/${id}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+    
+    return await handleResponse(response);
+  } catch (error) {
+    console.error("Error updating job status:", error);
+    throw error;
+  }
+};
+
+export const deleteJob = async (id: number) => {
+  try {
+    const response = await fetch(`${API_URL}/jobs/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+    
+    return await handleResponse(response);
+  } catch (error) {
+    console.error("Error deleting job:", error);
+    throw error;
+  }
+};
+
+// Proposals APIs
+export const createProposal = async (jobId: number, proposalData: { coverLetter: string; bidAmount: number }) => {
+  try {
+    const response = await fetch(`${API_URL}/jobs/${jobId}/proposals`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({
+        cover_letter: proposalData.coverLetter,
+        bid_amount: proposalData.bidAmount,
+      }),
+    });
+    
+    return await handleResponse(response);
+  } catch (error) {
+    console.error("Error submitting proposal:", error);
+    throw error;
+  }
+};
+
+export const getJobProposals = async (jobId: number) => {
+  try {
+    const response = await fetch(`${API_URL}/jobs/${jobId}/proposals`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+    
+    return await handleResponse(response);
+  } catch (error) {
+    console.error("Error fetching proposals:", error);
+    throw error;
+  }
+};
+
+export const updateProposalStatus = async (proposalId: number, status: "accepted" | "rejected") => {
+  try {
+    const response = await fetch(`${API_URL}/proposals/${proposalId}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+    
+    return await handleResponse(response);
+  } catch (error) {
+    console.error("Error updating proposal status:", error);
     throw error;
   }
 };

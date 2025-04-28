@@ -19,7 +19,9 @@ import Dashboard from "./pages/Dashboard";
 import Jobs from "./pages/Jobs";
 import JobDetail from "./pages/JobDetail";
 import PostJob from "./pages/PostJob";
+import EditJob from "./pages/EditJob";
 import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 // Create a new client outside the component
@@ -49,6 +51,8 @@ const App = () => (
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/post-job" element={<PostJob />} />
+              <Route path="/edit-job/:id" element={<EditJob />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/profile" element={<Profile />} />
               {/* Add more protected routes here */}
             </Route>
