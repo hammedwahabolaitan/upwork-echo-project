@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -9,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/utils/toastUtils";
-import { createJob } from "@/services/api";
+import { createJob } from "@/services";
 
 const PostJob = () => {
   const { user, isAuthenticated } = useAuth();
