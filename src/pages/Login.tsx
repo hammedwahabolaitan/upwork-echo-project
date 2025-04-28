@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import Layout from "@/components/upwork/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/utils/toastUtils";
+import { Mail, Lock } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -31,7 +33,8 @@ const Login = () => {
     } catch (error) {
       console.error("Login error:", error);
       toast("Login failed", {
-        description: error instanceof Error ? error.message : "Invalid credentials"
+        description: error instanceof Error ? error.message : "Invalid credentials",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -41,9 +44,9 @@ const Login = () => {
   return (
     <Layout>
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-sm">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
               Log in to your account
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
@@ -55,39 +58,42 @@ const Login = () => {
           </div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-md shadow-sm space-y-4">
-              <div>
-                <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
-                  Email address
-                </label>
-                <Input
-                  id="email-address"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="mt-1"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                />
+              <div className="space-y-2">
+                <Label htmlFor="email-address">Email address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
+                  <Input
+                    id="email-address"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="pl-10"
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  className="mt-1"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                />
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    className="pl-10"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
             </div>
 
@@ -117,7 +123,7 @@ const Login = () => {
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-upwork-green hover:bg-upwork-darkGreen focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-upwork-green"
                 disabled={isLoading}
               >
-                {isLoading ? "Logging in..." : "Log in"}
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </div>
           </form>
@@ -128,27 +134,25 @@ const Login = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <div>
-                <a
-                  href="#"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <span>Google</span>
-                </a>
-              </div>
-              <div>
-                <a
-                  href="#"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <span>Apple</span>
-                </a>
-              </div>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={isLoading}
+              >
+                Google
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={isLoading}
+              >
+                Apple
+              </Button>
             </div>
           </div>
         </div>
