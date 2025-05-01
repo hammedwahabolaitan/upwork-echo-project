@@ -29,6 +29,8 @@ const Login = () => {
       toast("Login successful", {
         description: "You have successfully logged in."
       });
+      // Add explicit navigation after successful login
+      navigate(from, { replace: true });
     } catch (error) {
       console.error("Login error:", error);
       // Fix: Remove 'variant' property as it doesn't exist in sonner's toast API
