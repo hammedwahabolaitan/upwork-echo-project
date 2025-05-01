@@ -31,9 +31,10 @@ const Login = () => {
       });
     } catch (error) {
       console.error("Login error:", error);
+      // Fix: Remove 'variant' property as it doesn't exist in sonner's toast API
       toast("Login failed", {
         description: error instanceof Error ? error.message : "Invalid credentials",
-        variant: "destructive",
+        style: { backgroundColor: 'red', color: 'white' }
       });
     } finally {
       setIsLoading(false);
