@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Layout from "@/components/upwork/Layout";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/utils/toastUtils";
+import { toast } from "sonner";
 import { Mail, Lock } from "lucide-react";
 
 const Login = () => {
@@ -29,7 +29,6 @@ const Login = () => {
       toast("Login successful", {
         description: "You have successfully logged in."
       });
-      navigate(from, { replace: true });
     } catch (error) {
       console.error("Login error:", error);
       toast("Login failed", {
