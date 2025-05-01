@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_URL } from "@/services/config";
+import { toast } from "sonner";
 
 // Define User Type
 export interface User {
@@ -40,6 +41,10 @@ export const useAuth = () => useContext(AuthContext);
 const getToken = () => localStorage.getItem("token");
 const setToken = (token: string) => localStorage.setItem("token", token);
 const removeToken = () => localStorage.removeItem("token");
+const getUserFromStorage = () => {
+  const userStr = localStorage.getItem("user");
+  return userStr ? JSON.parse(userStr) : null;
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -47,48 +52,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
   const location = useLocation();
 
-  const checkAuth = async () => {
-    const token = getToken();
-    
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-    
-    try {
-      const response = await fetch(`${API_URL}/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        
-        setUser({
-          id: userData.id,
-          firstName: userData.first_name,
-          lastName: userData.last_name,
-          email: userData.email,
-          accountType: userData.account_type,
-          bio: userData.bio,
-          skills: userData.skills,
-          hourlyRate: userData.hourly_rate,
-          avatarUrl: userData.avatar_url
-        });
-      } else {
-        // Token is invalid or expired
-        removeToken();
-      }
-    } catch (error) {
-      console.error("Auth error:", error);
-      removeToken();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Check auth on initial load
   useEffect(() => {
+    const checkAuth = async () => {
+      const token = getToken();
+      const storedUser = getUserFromStorage();
+      
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (storedUser) {
+        // If we have user data already stored, use it immediately to avoid delay
+        setUser(storedUser);
+      }
+      
+      try {
+        // Try to validate the token and get fresh user data
+        const response = await fetch(`${API_URL}/login/verify`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          
+          // Map snake_case to camelCase for consistent frontend use
+          const user = {
+            id: userData.id || userData.user_id,
+            firstName: userData.first_name,
+            lastName: userData.last_name,
+            email: userData.email,
+            accountType: userData.account_type,
+            bio: userData.bio,
+            skills: userData.skills,
+            hourlyRate: userData.hourly_rate,
+            avatarUrl: userData.avatar_url
+          };
+          
+          setUser(user);
+          localStorage.setItem("user", JSON.stringify(user));
+        } else {
+          // Token is invalid or expired
+          removeToken();
+          localStorage.removeItem("user");
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("Auth verification error:", error);
+        // Don't remove token on network errors to prevent unnecessary logouts
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     checkAuth();
   }, []);
 
@@ -117,12 +136,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
       setToken(data.token);
       
-      // Fetch user data
-      await checkAuth();
+      // Convert snake_case to camelCase for consistent frontend use
+      const userData = {
+        id: data.user.id,
+        firstName: data.user.first_name,
+        lastName: data.user.last_name,
+        email: data.user.email,
+        accountType: data.user.account_type,
+        bio: data.user.bio,
+        skills: data.user.skills,
+        hourlyRate: data.user.hourly_rate,
+        avatarUrl: data.user.avatar_url
+      };
       
-      // Get the location they were trying to access
-      const from = (location.state as any)?.from?.pathname || "/dashboard";
-      navigate(from, { replace: true });
+      // Store user data in localStorage for persistence
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+      
+      return;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -147,10 +178,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
       setToken(data.token);
       
-      // Fetch user data
-      await checkAuth();
+      // Convert snake_case to camelCase for frontend use
+      const user = {
+        id: data.user.id,
+        firstName: data.user.first_name,
+        lastName: data.user.last_name,
+        email: data.user.email,
+        accountType: data.user.account_type
+      };
       
-      navigate('/dashboard');
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
     } catch (error) {
       console.error("Signup error:", error);
       throw error;
@@ -160,6 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     removeToken();
+    localStorage.removeItem("user");
     navigate('/');
   };
 

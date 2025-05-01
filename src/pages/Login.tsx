@@ -8,6 +8,7 @@ import Layout from "@/components/upwork/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Mail, Lock } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ const Login = () => {
   const location = useLocation();
   const { login } = useAuth();
 
-  // Get the location they were trying to access
+  // Get the location they were trying to access or default to dashboard
   const from = (location.state as any)?.from?.pathname || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,11 +30,10 @@ const Login = () => {
       toast("Login successful", {
         description: "You have successfully logged in."
       });
-      // Add explicit navigation after successful login
+      // Explicitly navigate after successful login
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Login error:", error);
-      // Fix: Remove 'variant' property as it doesn't exist in sonner's toast API
       toast("Login failed", {
         description: error instanceof Error ? error.message : "Invalid credentials",
         style: { backgroundColor: 'red', color: 'white' }
@@ -125,7 +125,14 @@ const Login = () => {
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-upwork-green hover:bg-upwork-darkGreen focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-upwork-green"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <Spinner className="w-4 h-4 mr-2 border-2 border-t-2 border-white" />
+                    Signing in...
+                  </div>
+                ) : (
+                  "Sign in"
+                )}
               </Button>
             </div>
           </form>
