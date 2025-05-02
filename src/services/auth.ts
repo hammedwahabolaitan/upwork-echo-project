@@ -1,6 +1,5 @@
-
 import { LoginCredentials, RegistrationData, User } from './types';
-import { API_URL, handleResponse } from './config';
+import { API_URL, handleResponse, apiRequest } from './config';
 import { toast } from "sonner";
 
 export const login = async (credentials: LoginCredentials) => {
@@ -126,21 +125,17 @@ export const resendVerificationEmail = async (email: string) => {
 export const requestPasswordReset = async (email: string) => {
   try {
     console.log("Requesting password reset for:", email);
-    const response = await fetch(`${API_URL}/forgot-password`, {
+    // Use the apiRequest utility function to ensure consistent error handling
+    const response = await apiRequest('/forgot-password', {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email })
     });
-    
-    const data = await handleResponse(response);
     
     toast.success("Password reset email sent", {
       description: "Note: For testing, check server console for the email preview URL"
     });
     
-    return data;
+    return response;
   } catch (error) {
     console.error("Password reset request error:", error);
     if (error instanceof Error && error.message.includes("404")) {

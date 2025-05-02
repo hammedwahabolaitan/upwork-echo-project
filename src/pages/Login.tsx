@@ -21,6 +21,8 @@ const Login = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resetError, setResetError] = useState<string | null>(null);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const { login, user, isAuthenticated } = useAuth();
@@ -91,6 +93,8 @@ const Login = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setResetError(null);
+    
     if (!resetEmail) {
       toast.error("Email required", {
         description: "Please enter your email address"
@@ -104,9 +108,8 @@ const Login = () => {
       setShowForgotPassword(false);
       setResetEmail("");
     } catch (error) {
-      toast.error("Failed to send reset email", {
-        description: error instanceof Error ? error.message : "Please try again later"
-      });
+      console.error("Reset password error:", error);
+      setResetError("The password reset service is currently unavailable. Please try again later or contact support.");
     } finally {
       setIsLoading(false);
     }
@@ -230,6 +233,13 @@ const Login = () => {
             </DialogDescription>
           </DialogHeader>
           
+          {resetError && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{resetError}</AlertDescription>
+            </Alert>
+          )}
+          
           <form onSubmit={handleForgotPassword} className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-right">
@@ -244,6 +254,13 @@ const Login = () => {
                 type="email"
               />
             </div>
+            
+            <Alert className="bg-yellow-50 border-yellow-200">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-sm">
+                <strong>Testing Environment:</strong> For development, password reset emails are sent to the server console. Check the server logs for the link.
+              </AlertDescription>
+            </Alert>
             
             <DialogFooter className="sm:justify-end mt-4">
               <Button 
