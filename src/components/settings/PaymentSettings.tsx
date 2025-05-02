@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/utils/toastUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Paypal, Wallet, CreditCardIcon } from "lucide-react";
+import { CreditCard, Wallet, CreditCardIcon, CircleDollarSign } from "lucide-react";
 
 const PaymentSettings = () => {
   const [activeTab, setActiveTab] = useState("cards");
@@ -37,7 +37,7 @@ const PaymentSettings = () => {
               <span>Credit Cards</span>
             </TabsTrigger>
             <TabsTrigger value="paypal" className="flex items-center gap-2">
-              <Paypal className="h-4 w-4" />
+              <CircleDollarSign className="h-4 w-4" />
               <span>PayPal</span>
             </TabsTrigger>
             <TabsTrigger value="others" className="flex items-center gap-2">
@@ -78,7 +78,7 @@ const PaymentSettings = () => {
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-4">
                 <p className="text-center text-gray-500 mb-2">Connect your PayPal account to make and receive payments</p>
                 <div className="flex justify-center">
-                  <Paypal className="h-12 w-12 text-blue-500" />
+                  <CircleDollarSign className="h-12 w-12 text-blue-500" />
                 </div>
               </div>
               
