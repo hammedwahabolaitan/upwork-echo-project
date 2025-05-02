@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { API_URL } from "@/services/config";
+import { API_URL, getToken, setToken, removeToken } from "@/services/config";
 import { toast } from "sonner";
 
 // Define User Type
@@ -37,13 +37,29 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-// Helper functions for token management
-const getToken = () => localStorage.getItem("token");
-const setToken = (token: string) => localStorage.setItem("token", token);
-const removeToken = () => localStorage.removeItem("token");
+// Helper functions for user data management
+const saveUserToStorage = (user: User) => {
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
 const getUserFromStorage = () => {
   const userStr = localStorage.getItem("user");
   return userStr ? JSON.parse(userStr) : null;
+};
+
+// Helper to map API response to our User type
+const mapUserData = (userData: any): User => {
+  return {
+    id: userData.id,
+    firstName: userData.first_name,
+    lastName: userData.last_name,
+    email: userData.email,
+    accountType: userData.account_type,
+    bio: userData.bio || "",
+    skills: userData.skills || "",
+    hourlyRate: userData.hourly_rate,
+    avatarUrl: userData.avatar_url
+  };
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -78,22 +94,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (response.ok) {
           const userData = await response.json();
+          const mappedUser = mapUserData(userData);
           
-          // Map snake_case to camelCase for consistent frontend use
-          const user = {
-            id: userData.id || userData.user_id,
-            firstName: userData.first_name,
-            lastName: userData.last_name,
-            email: userData.email,
-            accountType: userData.account_type,
-            bio: userData.bio,
-            skills: userData.skills,
-            hourlyRate: userData.hourly_rate,
-            avatarUrl: userData.avatar_url
-          };
-          
-          setUser(user);
-          localStorage.setItem("user", JSON.stringify(user));
+          setUser(mappedUser);
+          saveUserToStorage(mappedUser);
         } else {
           // Token is invalid or expired
           removeToken();
@@ -136,24 +140,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
       setToken(data.token);
       
-      // Convert snake_case to camelCase for consistent frontend use
-      const userData = {
-        id: data.user.id,
-        firstName: data.user.first_name,
-        lastName: data.user.last_name,
-        email: data.user.email,
-        accountType: data.user.account_type,
-        bio: data.user.bio,
-        skills: data.user.skills,
-        hourlyRate: data.user.hourly_rate,
-        avatarUrl: data.user.avatar_url
-      };
+      // Map user data to our User type
+      const mappedUser = mapUserData(data.user);
       
       // Store user data in localStorage for persistence
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
+      saveUserToStorage(mappedUser);
+      setUser(mappedUser);
       
-      return;
+      // Redirect to dashboard or intended location
+      const intendedPath = (location.state as any)?.from?.pathname || "/dashboard";
+      navigate(intendedPath, { replace: true });
+      
+      toast.success("Welcome back!", {
+        description: `You are now logged in as ${mappedUser.firstName}`
+      });
+      
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -178,17 +179,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
       setToken(data.token);
       
-      // Convert snake_case to camelCase for frontend use
-      const user = {
-        id: data.user.id,
-        firstName: data.user.first_name,
-        lastName: data.user.last_name,
-        email: data.user.email,
-        accountType: data.user.account_type
-      };
+      // Map user data to our User type
+      const mappedUser = mapUserData(data.user);
       
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
+      saveUserToStorage(mappedUser);
+      setUser(mappedUser);
+      
+      // Redirect to dashboard after successful registration
+      navigate('/dashboard');
+      
+      toast.success("Account created successfully!", {
+        description: "Welcome to our platform"
+      });
     } catch (error) {
       console.error("Signup error:", error);
       throw error;
@@ -200,6 +202,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     removeToken();
     localStorage.removeItem("user");
     navigate('/');
+    toast.info("You have been logged out", {
+      description: "Come back soon!"
+    });
   };
 
   return (

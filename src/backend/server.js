@@ -413,7 +413,7 @@ app.patch('/api/proposals/:id/status', authenticateToken, async (req, res) => {
 app.get('/api/profile/:id', async (req, res) => {
   try {
     const [users] = await pool.query(
-      'SELECT id, first_name, last_name, email, account_type, bio, skills, hourly_rate FROM users WHERE id = ?',
+      'SELECT id, first_name, last_name, email, account_type, bio, skills, hourly_rate, avatar_url FROM users WHERE id = ?',
       [req.params.id]
     );
     
@@ -464,6 +464,27 @@ app.post('/api/profile/avatar', authenticateToken, upload.single('avatar'), asyn
     res.json({ avatarUrl });
   } catch (error) {
     console.error('Error uploading avatar:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Add JWT verification endpoint
+app.get('/api/login/verify', authenticateToken, async (req, res) => {
+  try {
+    // The user data is already verified by the authenticateToken middleware
+    // Fetch the latest user data from the database
+    const [users] = await pool.query(
+      'SELECT id, first_name, last_name, email, account_type, bio, skills, hourly_rate, avatar_url FROM users WHERE id = ?',
+      [req.user.userId]
+    );
+    
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json(users[0]);
+  } catch (error) {
+    console.error('Auth verification error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

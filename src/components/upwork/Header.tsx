@@ -1,5 +1,5 @@
 
-import { Search, Menu, Bell, MessageSquare } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import NotificationBell from "@/components/notifications/NotificationBell";
+import MessageCenter from "@/components/messaging/MessageCenter";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -54,14 +56,8 @@ const Header = () => {
                   Dashboard
                 </Link>
                 
-                <button className="relative text-gray-600 hover:text-upwork-green">
-                  <Bell size={20} />
-                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
-                </button>
-                
-                <button className="relative text-gray-600 hover:text-upwork-green">
-                  <MessageSquare size={20} />
-                </button>
+                <NotificationBell />
+                <MessageCenter />
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

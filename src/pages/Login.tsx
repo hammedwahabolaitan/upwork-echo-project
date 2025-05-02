@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,31 +7,56 @@ import { Label } from "@/components/ui/label";
 import Layout from "@/components/upwork/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, AlertCircle } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [validationError, setValidationError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // Get the location they were trying to access or default to dashboard
   const from = (location.state as any)?.from?.pathname || "/dashboard";
 
+  const validateForm = () => {
+    setValidationError("");
+    
+    if (!email.trim()) {
+      setValidationError("Email is required");
+      return false;
+    }
+    
+    if (!password) {
+      setValidationError("Password is required");
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       await login(email, password);
-      toast("Login successful", {
-        description: "You have successfully logged in."
-      });
-      // Explicitly navigate after successful login
-      navigate(from, { replace: true });
+      // No need to manually navigate - AuthContext handles this now
     } catch (error) {
       console.error("Login error:", error);
       toast("Login failed", {
@@ -58,6 +83,14 @@ const Login = () => {
               </Link>
             </p>
           </div>
+          
+          {validationError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center" role="alert">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span>{validationError}</span>
+            </div>
+          )}
+          
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-md shadow-sm space-y-4">
               <div className="space-y-2">
@@ -152,6 +185,7 @@ const Login = () => {
                 variant="outline"
                 className="w-full"
                 disabled={isLoading}
+                onClick={() => toast.info("Google login is coming soon")}
               >
                 Google
               </Button>
@@ -159,6 +193,7 @@ const Login = () => {
                 variant="outline"
                 className="w-full"
                 disabled={isLoading}
+                onClick={() => toast.info("Apple login is coming soon")}
               >
                 Apple
               </Button>
