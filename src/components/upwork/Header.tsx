@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, User, LogOut, Settings } from "lucide-react";
@@ -138,6 +139,9 @@ const Header = () => {
               <>
                 <Link to="/profile" className="hover:text-upwork-green block py-2">
                   Profile
+                </Link>
+                <Link to="/settings" className="hover:text-upwork-green block py-2">
+                  Settings
                 </Link>
                 <Button variant="ghost" className="justify-start" onClick={handleLogout}>
                   Log Out

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +22,7 @@ import JobDetail from "./pages/JobDetail";
 import PostJob from "./pages/PostJob";
 import EditJob from "./pages/EditJob";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -55,6 +57,7 @@ const App = () => (
                 <Route path="/edit-job/:id" element={<EditJob />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
                 {/* Add more protected routes here */}
               </Route>
               
