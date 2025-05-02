@@ -1,10 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/auth";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Pages
@@ -31,36 +31,38 @@ const App = () => (
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/find-talent" element={<FindTalent />} />
-            <Route path="/find-work" element={<FindWork />} />
-            <Route path="/why-upwork" element={<WhyUpwork />} />
-            <Route path="/enterprise" element={<Enterprise />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/jobs/:id" element={<JobDetail />} />
-            <Route path="/profile/:id" element={<Profile />} />
-            
-            {/* Protected routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/post-job" element={<PostJob />} />
-              <Route path="/edit-job/:id" element={<EditJob />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              {/* Add more protected routes here */}
-            </Route>
-            
-            {/* 404 page */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/find-talent" element={<FindTalent />} />
+              <Route path="/find-work" element={<FindWork />} />
+              <Route path="/why-upwork" element={<WhyUpwork />} />
+              <Route path="/enterprise" element={<Enterprise />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/:id" element={<JobDetail />} />
+              <Route path="/profile/:id" element={<Profile />} />
+              
+              {/* Protected routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/post-job" element={<PostJob />} />
+                <Route path="/edit-job/:id" element={<EditJob />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                {/* Add more protected routes here */}
+              </Route>
+              
+              {/* 404 page */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   </BrowserRouter>

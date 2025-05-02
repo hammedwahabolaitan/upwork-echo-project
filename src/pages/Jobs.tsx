@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
 import { getJobs, Job } from "@/services";
@@ -9,6 +9,14 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { toast } from "@/utils/toastUtils";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { useDebounce } from "@/hooks/useDebounce";
+
+// Define filters interface
+interface JobFilters {
+  jobType: { hourly: boolean; fixed: boolean };
+  experience: { entry: boolean; intermediate: boolean; expert: boolean };
+}
 
 const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -16,48 +24,123 @@ const Jobs = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<JobFilters>({
+    jobType: { hourly: false, fixed: false },
+    experience: { entry: false, intermediate: false, expert: false }
+  });
+  const { addNotification } = useNotifications();
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const jobsPerPage = 6;
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const data = await getJobs();
-        setJobs(data);
-        setFilteredJobs(data);
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-        toast("Error loading jobs", {
-          description: "Failed to load jobs"
-        });
-      } finally {
-        setIsLoading(false);
+  const fetchJobs = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getJobs();
+      setJobs(data);
+      setFilteredJobs(data);
+      
+      // Demonstration: Show a notification for new jobs
+      if (data.length > 0) {
+        const recentJob = data[0];
+        if (new Date(recentJob.created_at).getTime() > Date.now() - 24 * 60 * 60 * 1000) {
+          addNotification({
+            message: `New job posted: ${recentJob.title}`,
+            type: 'job',
+            link: `/jobs/${recentJob.id}`
+          });
+        }
       }
-    };
-
-    fetchJobs();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      toast("Error loading jobs", {
+        description: "Failed to load jobs"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [addNotification]);
 
   useEffect(() => {
-    const results = jobs.filter(job => 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.skills.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    fetchJobs();
+  }, [fetchJobs]);
+
+  // Apply filters and search
+  const applyFilters = useCallback(() => {
+    let results = [...jobs];
+    
+    // Apply search filter
+    if (debouncedSearchTerm) {
+      results = results.filter(job => 
+        job.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || 
+        job.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        job.skills.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      );
+    }
+    
+    // Apply job type filters
+    const jobTypeFilters = Object.values(filters.jobType).some(value => value);
+    if (jobTypeFilters) {
+      results = results.filter(job => {
+        // Determine if a job is hourly or fixed based on its duration
+        const isHourly = job.duration.toLowerCase().includes('hour');
+        return (filters.jobType.hourly && isHourly) || 
+               (filters.jobType.fixed && !isHourly);
+      });
+    }
+    
+    // Apply experience level filters
+    const experienceFilters = Object.values(filters.experience).some(value => value);
+    if (experienceFilters) {
+      results = results.filter(job => {
+        // Determine job experience level based on budget
+        const budget = Number(job.budget);
+        const isEntry = budget < 500;
+        const isIntermediate = budget >= 500 && budget < 2000;
+        const isExpert = budget >= 2000;
+        
+        return (filters.experience.entry && isEntry) ||
+               (filters.experience.intermediate && isIntermediate) ||
+               (filters.experience.expert && isExpert);
+      });
+    }
+    
     setFilteredJobs(results);
     setCurrentPage(1);
-  }, [searchTerm, jobs]);
+  }, [jobs, debouncedSearchTerm, filters]);
 
-  const indexOfLastJob = currentPage * jobsPerPage;
-  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
-
-  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+  useEffect(() => {
+    applyFilters();
+  }, [debouncedSearchTerm, filters, applyFilters]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
+  const handleFilterChange = (category: keyof JobFilters, name: string, checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [name]: checked
+      }
+    }));
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilters({
+      jobType: { hourly: false, fixed: false },
+      experience: { entry: false, intermediate: false, expert: false }
+    });
+  };
+
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  // Pagination logic
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
   return (
     <Layout>
@@ -92,8 +175,10 @@ const Jobs = () => {
                     <div className="flex items-center">
                       <input
                         id="hourly"
-                        name="job-type"
+                        name="hourly"
                         type="checkbox"
+                        checked={filters.jobType.hourly}
+                        onChange={(e) => handleFilterChange('jobType', 'hourly', e.target.checked)}
                         className="h-4 w-4 text-upwork-green focus:ring-upwork-green border-gray-300 rounded"
                       />
                       <label htmlFor="hourly" className="ml-2 block text-sm text-gray-700">
@@ -103,8 +188,10 @@ const Jobs = () => {
                     <div className="flex items-center">
                       <input
                         id="fixed"
-                        name="job-type"
+                        name="fixed"
                         type="checkbox"
+                        checked={filters.jobType.fixed}
+                        onChange={(e) => handleFilterChange('jobType', 'fixed', e.target.checked)}
                         className="h-4 w-4 text-upwork-green focus:ring-upwork-green border-gray-300 rounded"
                       />
                       <label htmlFor="fixed" className="ml-2 block text-sm text-gray-700">
@@ -120,8 +207,10 @@ const Jobs = () => {
                     <div className="flex items-center">
                       <input
                         id="entry"
-                        name="experience"
+                        name="entry"
                         type="checkbox"
+                        checked={filters.experience.entry}
+                        onChange={(e) => handleFilterChange('experience', 'entry', e.target.checked)}
                         className="h-4 w-4 text-upwork-green focus:ring-upwork-green border-gray-300 rounded"
                       />
                       <label htmlFor="entry" className="ml-2 block text-sm text-gray-700">
@@ -131,8 +220,10 @@ const Jobs = () => {
                     <div className="flex items-center">
                       <input
                         id="intermediate"
-                        name="experience"
+                        name="intermediate"
                         type="checkbox"
+                        checked={filters.experience.intermediate}
+                        onChange={(e) => handleFilterChange('experience', 'intermediate', e.target.checked)}
                         className="h-4 w-4 text-upwork-green focus:ring-upwork-green border-gray-300 rounded"
                       />
                       <label htmlFor="intermediate" className="ml-2 block text-sm text-gray-700">
@@ -142,8 +233,10 @@ const Jobs = () => {
                     <div className="flex items-center">
                       <input
                         id="expert"
-                        name="experience"
+                        name="expert"
                         type="checkbox"
+                        checked={filters.experience.expert}
+                        onChange={(e) => handleFilterChange('experience', 'expert', e.target.checked)}
                         className="h-4 w-4 text-upwork-green focus:ring-upwork-green border-gray-300 rounded"
                       />
                       <label htmlFor="expert" className="ml-2 block text-sm text-gray-700">
@@ -153,7 +246,7 @@ const Jobs = () => {
                   </div>
                 </div>
 
-                <Button variant="outline" className="w-full">
+                <Button onClick={clearFilters} variant="outline" className="w-full">
                   Clear Filters
                 </Button>
               </CardContent>
@@ -241,8 +334,8 @@ const Jobs = () => {
               <div className="text-center py-12 bg-gray-50 rounded-lg">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
                 <p className="text-gray-600 mb-4">Try adjusting your search criteria or check back later.</p>
-                <Button onClick={() => setSearchTerm("")} variant="outline">
-                  Clear Search
+                <Button onClick={clearFilters} variant="outline">
+                  Clear Filters
                 </Button>
               </div>
             )}

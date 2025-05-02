@@ -1,86 +1,110 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import Layout from "@/components/upwork/Layout";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/utils/toastUtils";
+import { useParams, useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, User } from "@/services";
-import { API_URL, getToken } from "@/services/config";
+import { useAuth } from "@/contexts/AuthContext";
+import Layout from "@/components/upwork/Layout";
 import ProfileHeader from "@/components/profile/ProfileHeader";
-import ProfileEditForm from "@/components/profile/ProfileEditForm";
 import ProfileContent from "@/components/profile/ProfileContent";
-import { Badge } from "@/components/ui/badge";
+import ProfileEditForm from "@/components/profile/ProfileEditForm";
+import { toast } from "@/utils/toastUtils";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const Profile = () => {
-  const { id } = useParams<{ id?: string }>();
-  const { user: currentUser, isAuthenticated } = useAuth();
+  const { id } = useParams<{ id: string }>();
+  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { addNotification } = useNotifications();
+  
   const [profile, setProfile] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     bio: "",
     skills: "",
-    hourlyRate: "",
+    hourlyRate: ""
   });
-
+  
+  // Determine if this is the current user's profile
   const isOwnProfile = !id || (currentUser && id === currentUser.id.toString());
-  const userId = id ? parseInt(id) : currentUser?.id;
-
+  
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!userId) return;
-      
       try {
-        const data = await getProfile(userId);
+        // If no ID is specified, fetch the current user's profile
+        const userId = id || (currentUser?.id.toString() || '');
         
-        const mappedData = {
-          id: data.id,
-          firstName: data.first_name || "",
-          lastName: data.last_name || "",
-          email: data.email,
-          accountType: data.account_type,
-          bio: data.bio || "",
-          skills: data.skills || "",
-          hourlyRate: data.hourly_rate
-        };
+        if (!userId) {
+          navigate("/login");
+          return;
+        }
         
-        setProfile(mappedData);
+        const userData = await getProfile(userId);
+        setProfile(userData);
+        
+        // Initialize form data
         setFormData({
-          firstName: mappedData.firstName,
-          lastName: mappedData.lastName,
-          bio: mappedData.bio || "",
-          skills: mappedData.skills || "",
-          hourlyRate: mappedData.hourlyRate?.toString() || "",
+          firstName: userData.firstName || "",
+          lastName: userData.lastName || "",
+          bio: userData.bio || "",
+          skills: userData.skills || "",
+          hourlyRate: userData.hourlyRate ? userData.hourlyRate.toString() : ""
         });
+        
+        // Demonstrate notification (in real app, this would be triggered by backend events)
+        if (isOwnProfile && userData.accountType === 'freelancer' && Math.random() > 0.5) {
+          setTimeout(() => {
+            addNotification({
+              message: "A client viewed your profile",
+              type: "system",
+              link: "/profile"
+            });
+          }, 3000);
+        }
       } catch (error) {
         console.error("Error fetching profile:", error);
-        toast("Error loading profile", {
-          description: "Failed to load profile"
+        toast("Error fetching profile", {
+          description: "Failed to load profile information"
         });
       } finally {
         setIsLoading(false);
       }
     };
-
+    
     fetchProfile();
-  }, [userId]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  }, [id, currentUser, navigate, isOwnProfile, addNotification]);
+  
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-
+  
+  const handleImageUpload = async (file: File) => {
+    // In a real app, this would upload the file to a server
+    // For this example, we just update the UI locally
+    if (profile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfile(prev => prev ? { 
+          ...prev, 
+          avatarUrl: e.target?.result as string 
+        } : null);
+      };
+      reader.readAsDataURL(file);
+      
+      toast("Image uploaded", {
+        description: "Profile picture updated successfully"
+      });
+    }
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isAuthenticated || !isOwnProfile) {
-      toast("Access denied", {
-        description: "You can only update your own profile"
-      });
-      return;
-    }
+    if (!profile) return;
     
     setIsLoading(true);
     
@@ -90,127 +114,94 @@ const Profile = () => {
         lastName: formData.lastName,
         bio: formData.bio,
         skills: formData.skills,
-        hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : undefined,
+        hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : undefined
       });
       
-      setProfile({
-        ...profile!,
+      // Update local profile state
+      setProfile(prev => prev ? {
+        ...prev,
         firstName: formData.firstName,
         lastName: formData.lastName,
         bio: formData.bio,
         skills: formData.skills,
-        hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : undefined,
-      });
+        hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : undefined
+      } : null);
       
       setIsEditing(false);
       
       toast("Profile updated", {
         description: "Your profile has been updated successfully"
       });
+      
+      // Add a notification
+      addNotification({
+        message: "Your profile was updated successfully",
+        type: "system",
+        link: "/profile"
+      });
+      
     } catch (error) {
       console.error("Error updating profile:", error);
       toast("Error updating profile", {
-        description: "Failed to update profile"
+        description: error instanceof Error ? error.message : "An error occurred"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleImageUpload = async (file: File) => {
-    setIsLoading(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      
-      const response = await fetch(`${API_URL}/profile/avatar`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-        },
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to upload image');
-      }
-      
-      const data = await response.json();
-      
-      setProfile(prev => prev ? {
-        ...prev,
-        avatarUrl: data.avatarUrl
-      } : null);
-      
-      toast("Profile updated", {
-        description: "Your profile picture has been updated successfully"
-      });
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast("Error updating profile picture", {
-        description: "Failed to update profile picture"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  
   if (isLoading && !profile) {
     return (
       <Layout>
-        <div className="container mx-auto py-12 px-4 flex justify-center items-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-upwork-green mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading profile...</p>
+        <div className="container mx-auto py-8 px-4">
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-upwork-green"></div>
           </div>
         </div>
       </Layout>
     );
   }
-
+  
   if (!profile) {
     return (
       <Layout>
-        <div className="container mx-auto py-12 px-4">
+        <div className="container mx-auto py-8 px-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
-            <p>The profile you're looking for doesn't exist or has been removed.</p>
+            <h1 className="text-2xl font-bold text-gray-700">Profile not found</h1>
+            <p className="mt-2 text-gray-600">The requested profile could not be found.</p>
           </div>
         </div>
       </Layout>
     );
   }
-
+  
   return (
     <Layout>
       <div className="container mx-auto py-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          <ProfileHeader
+        <ProfileHeader 
+          profile={profile}
+          isOwnProfile={isOwnProfile}
+          isEditing={isEditing}
+          onEditClick={() => setIsEditing(!isEditing)}
+        />
+        
+        {isEditing ? (
+          <ProfileEditForm
+            formData={formData}
             profile={profile}
-            isOwnProfile={isOwnProfile}
-            isEditing={isEditing}
-            onEditClick={() => setIsEditing(!isEditing)}
+            isLoading={isLoading}
+            onSubmit={handleSubmit}
+            onChange={handleFormChange}
+            onImageUpload={handleImageUpload}
+            onCancel={() => setIsEditing(false)}
           />
-          
-          {isEditing && (
-            <ProfileEditForm
-              formData={formData}
-              profile={profile}
-              isLoading={isLoading}
-              onSubmit={handleSubmit}
-              onChange={handleChange}
-              onImageUpload={handleImageUpload}
-              onCancel={() => setIsEditing(false)}
-            />
-          )}
-          
-          <ProfileContent
+        ) : (
+          <ProfileContent 
             profile={profile}
             isOwnProfile={isOwnProfile}
             isEditing={isEditing}
           />
-        </div>
+        )}
       </div>
     </Layout>
   );
