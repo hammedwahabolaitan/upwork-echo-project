@@ -1,19 +1,20 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
-import { register } from "@/services";
-import { toast } from "@/utils/toastUtils";
+import { register, resendVerificationEmail } from "@/services";
+import { toast } from "sonner";
 import SignupForm from "@/components/auth/SignupForm";
 import SocialLogin from "@/components/auth/SocialLogin";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
 
 const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
-  const navigate = useNavigate();
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   const handleSubmit = async (data: {
     firstName: string;
@@ -37,16 +38,28 @@ const Signup = () => {
       setRegisteredEmail(data.email);
       setRegistrationCompleted(true);
       
-      toast("Registration successful", {
-        description: "Please check your email to verify your account."
-      });
     } catch (error) {
       console.error("Registration error:", error);
-      toast("Registration failed", {
+      toast.error("Registration failed", {
         description: error instanceof Error ? error.message : "Something went wrong"
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!registeredEmail) return;
+    
+    setResendingEmail(true);
+    try {
+      await resendVerificationEmail(registeredEmail);
+    } catch (error) {
+      toast.error("Failed to resend verification email", {
+        description: error instanceof Error ? error.message : "Please try again later"
+      });
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -74,13 +87,24 @@ const Signup = () => {
                 </AlertDescription>
               </Alert>
               
-              <div className="text-center">
-                <Link 
-                  to="/login"
-                  className="text-upwork-green hover:text-upwork-darkGreen font-medium"
+              <div className="text-center space-y-4">
+                <Button
+                  onClick={handleResendVerification}
+                  disabled={resendingEmail}
+                  variant="outline"
+                  className="w-full"
                 >
-                  Return to login
-                </Link>
+                  {resendingEmail ? "Sending..." : "Resend verification email"}
+                </Button>
+                
+                <div>
+                  <Link 
+                    to="/login"
+                    className="text-upwork-green hover:text-upwork-darkGreen font-medium"
+                  >
+                    Return to login
+                  </Link>
+                </div>
               </div>
             </div>
           ) : (

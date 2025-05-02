@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +29,18 @@ const pool = mysql.createPool({
 
 // JWT secret
 const JWT_SECRET = 'your-secret-key'; // In production, use environment variable
+const EMAIL_SECRET = 'email-verification-secret'; // For email verification tokens
+
+// Email transporter configuration
+const transporter = nodemailer.createTransport({
+  host: 'smtp.ethereal.email', // For testing purposes
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'dewitt.reilly@ethereal.email', // Testing email account - replace with your actual email in production
+    pass: 'tXh2BKzcJKc7dNaeaV'            // Testing password - replace with your actual password in production
+  }
+});
 
 // Auth middleware
 const authenticateToken = (req, res, next) => {
@@ -100,8 +114,95 @@ const upload = multer({
   }
 });
 
-// Routes
-// User registration
+// Helper function to send verification emails
+const sendVerificationEmail = async (email, verificationToken) => {
+  // Create verification URL that user will click
+  const url = `http://localhost:5000/api/verify-email/${verificationToken}`;
+  
+  // Email content
+  const mailOptions = {
+    from: 'noreply@upworkclone.com', // Replace with your company email
+    to: email,
+    subject: 'Verify Your Email Address',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #14a800;">Welcome to Upwork Clone!</h2>
+        <p>Thank you for signing up. Please click the button below to verify your email address:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${url}" style="background-color: #14a800; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            Verify Email Address
+          </a>
+        </div>
+        <p>If the button above doesn't work, you can also click on the link below or copy and paste it into your browser:</p>
+        <p><a href="${url}" style="color: #14a800; word-break: break-all;">${url}</a></p>
+        <p>This verification link will expire in 24 hours.</p>
+        <p>If you didn't create an account, you can safely ignore this email.</p>
+      </div>
+    `
+  };
+
+  // Send the email
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Verification email sent: %s', info.messageId);
+    // For ethereal email testing, log the test URL
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    }
+    return true;
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+    return false;
+  }
+};
+
+// Helper function to send login notification emails
+const sendLoginNotificationEmail = async (user, location, successful) => {
+  const mailOptions = {
+    from: 'security@upworkclone.com',
+    to: user.email,
+    subject: `${successful ? 'Successful' : 'Failed'} Login Attempt`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: ${successful ? '#14a800' : '#d93025'};">
+          ${successful ? 'Successful Login' : 'Failed Login Attempt'}
+        </h2>
+        <p>We detected a ${successful ? 'successful' : 'failed'} login attempt to your Upwork Clone account.</p>
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; margin: 20px 0;">
+          <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+          <p><strong>Location:</strong> ${location}</p>
+          <p><strong>Device:</strong> Web Browser</p>
+        </div>
+        ${!successful ? `
+          <p>If this was you, you may have entered incorrect login credentials. Please try again.</p>
+          <p>If this wasn't you, we recommend changing your password immediately.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="http://localhost:3000/reset-password" style="background-color: #d93025; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+              Reset Password
+            </a>
+          </div>
+        ` : `
+          <p>If this was you, no action is needed.</p>
+          <p>If this wasn't you, please secure your account immediately by changing your password.</p>
+        `}
+        <p>Thank you for helping us keep your account secure.</p>
+      </div>
+    `
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Login notification email sent: %s', info.messageId);
+    return true;
+  } catch (error) {
+    console.error('Error sending login notification email:', error);
+    return false;
+  }
+};
+
+// ROUTES
+
+// User registration with email verification
 app.post('/api/register', async (req, res) => {
   try {
     const { firstName, lastName, email, password, accountType } = req.body;
@@ -119,23 +220,90 @@ app.post('/api/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Insert user
-    const [result] = await pool.query(
-      'INSERT INTO users (first_name, last_name, email, password, account_type) VALUES (?, ?, ?, ?, ?)',
-      [firstName, lastName, email, hashedPassword, accountType]
+    // Generate verification token
+    const verificationToken = jwt.sign(
+      { email },
+      EMAIL_SECRET,
+      { expiresIn: '24h' }
     );
     
-    res.status(201).json({ message: 'User registered successfully', userId: result.insertId });
+    // Insert user with verified=0
+    const [result] = await pool.query(
+      'INSERT INTO users (first_name, last_name, email, password, account_type, is_verified, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [firstName, lastName, email, hashedPassword, accountType, 0, verificationToken]
+    );
+    
+    // Send verification email
+    await sendVerificationEmail(email, verificationToken);
+    
+    res.status(201).json({ 
+      message: 'User registered successfully. Please check your email to verify your account.',
+      userId: result.insertId 
+    });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// User login
+// Email verification endpoint
+app.get('/api/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    
+    // Verify the token
+    const decoded = jwt.verify(token, EMAIL_SECRET);
+    const { email } = decoded;
+    
+    // Update user to verified
+    const [result] = await pool.query(
+      'UPDATE users SET is_verified = 1, verification_token = NULL WHERE email = ? AND verification_token = ?',
+      [email, token]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(400).send('Email verification failed. Invalid or expired token.');
+    }
+    
+    // Redirect to frontend verification success page
+    res.redirect(`http://localhost:3000/login?verify=${token}`);
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(400).send('Email verification failed. Invalid or expired token.');
+  }
+});
+
+// Email verification API endpoint for direct verification
+app.post('/api/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+    
+    // Verify the token
+    const decoded = jwt.verify(token, EMAIL_SECRET);
+    const { email } = decoded;
+    
+    // Update user to verified
+    const [result] = await pool.query(
+      'UPDATE users SET is_verified = 1, verification_token = NULL WHERE email = ? AND verification_token = ?',
+      [email, token]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(400).json({ message: 'Email verification failed. Invalid or expired token.' });
+    }
+    
+    res.json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(400).json({ message: 'Email verification failed. Invalid or expired token.' });
+  }
+});
+
+// User login with verification check
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    const location = req.body.location || 'Unknown Location';
     
     // Find user
     const [users] = await pool.query(
@@ -144,6 +312,8 @@ app.post('/api/login', async (req, res) => {
     );
     
     if (users.length === 0) {
+      // Send login failure notification if email exists but wrong password
+      await sendLoginNotificationEmail({ email }, location, false);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     
@@ -152,7 +322,18 @@ app.post('/api/login', async (req, res) => {
     // Check password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
+      // Send login failure notification 
+      await sendLoginNotificationEmail(user, location, false);
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+    
+    // Check if email is verified
+    if (!user.is_verified && user.is_verified !== 1) {
+      return res.status(403).json({ 
+        message: 'Email not verified', 
+        needsVerification: true,
+        email: user.email
+      });
     }
     
     // Generate token
@@ -160,6 +341,15 @@ app.post('/api/login', async (req, res) => {
       { userId: user.id, email: user.email, accountType: user.account_type },
       JWT_SECRET,
       { expiresIn: '24h' }
+    );
+    
+    // Send successful login notification
+    await sendLoginNotificationEmail(user, location, true);
+    
+    // Log login attempt
+    await pool.query(
+      'INSERT INTO login_attempts (user_id, ip_address, user_agent, location, success) VALUES (?, ?, ?, ?, ?)',
+      [user.id, req.ip, req.headers['user-agent'], location, 1]
     );
     
     res.json({ 
@@ -172,11 +362,168 @@ app.post('/api/login', async (req, res) => {
         account_type: user.account_type,
         bio: user.bio,
         skills: user.skills,
-        hourly_rate: user.hourly_rate
+        hourly_rate: user.hourly_rate,
+        is_verified: user.is_verified
       } 
     });
   } catch (error) {
     console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Resend verification email
+app.post('/api/resend-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Check if user exists and is not verified
+    const [users] = await pool.query(
+      'SELECT * FROM users WHERE email = ? AND is_verified = 0',
+      [email]
+    );
+    
+    if (users.length === 0) {
+      return res.status(400).json({ message: 'User not found or already verified' });
+    }
+    
+    // Generate new verification token
+    const verificationToken = jwt.sign(
+      { email },
+      EMAIL_SECRET,
+      { expiresIn: '24h' }
+    );
+    
+    // Update user with new verification token
+    await pool.query(
+      'UPDATE users SET verification_token = ? WHERE email = ?',
+      [verificationToken, email]
+    );
+    
+    // Send verification email
+    await sendVerificationEmail(email, verificationToken);
+    
+    res.json({ message: 'Verification email sent successfully' });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Forgot password - request reset
+app.post('/api/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Check if user exists
+    const [users] = await pool.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+    
+    if (users.length === 0) {
+      // For security, still return success even if email doesn't exist
+      return res.json({ message: 'If your email is registered, you will receive a password reset link' });
+    }
+    
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = await bcrypt.hash(resetToken, 10);
+    
+    // Set token expiry (1 hour from now)
+    const expiryDate = new Date();
+    expiryDate.setHours(expiryDate.getHours() + 1);
+    
+    // Save token to database
+    await pool.query(
+      'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?',
+      [hashedToken, expiryDate, email]
+    );
+    
+    // Construct reset URL
+    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+    
+    // Send reset email
+    const mailOptions = {
+      from: 'noreply@upworkclone.com',
+      to: email,
+      subject: 'Password Reset Request',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #14a800;">Password Reset Request</h2>
+          <p>You requested a password reset. Click the button below to reset your password:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" style="background-color: #14a800; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+              Reset Password
+            </a>
+          </div>
+          <p>If you didn't request this, you can safely ignore this email.</p>
+          <p>This link will expire in 1 hour.</p>
+        </div>
+      `
+    };
+    
+    await transporter.sendMail(mailOptions);
+    
+    res.json({ message: 'If your email is registered, you will receive a password reset link' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Reset password with token
+app.post('/api/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    
+    // Find user with valid reset token
+    const [users] = await pool.query(
+      'SELECT * FROM users WHERE reset_token_expires > NOW()'
+    );
+    
+    // Check each user's hashed reset token
+    let validUser = null;
+    for (const user of users) {
+      const isValidToken = await bcrypt.compare(token, user.reset_token);
+      if (isValidToken) {
+        validUser = user;
+        break;
+      }
+    }
+    
+    if (!validUser) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+    
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Update password and clear reset token
+    await pool.query(
+      'UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
+      [hashedPassword, validUser.id]
+    );
+    
+    // Send password changed confirmation email
+    const mailOptions = {
+      from: 'security@upworkclone.com',
+      to: validUser.email,
+      subject: 'Password Changed Successfully',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #14a800;">Password Changed</h2>
+          <p>Your password has been reset successfully.</p>
+          <p>If you did not make this change, please contact support immediately.</p>
+        </div>
+      `
+    };
+    
+    await transporter.sendMail(mailOptions);
+    
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -474,7 +821,7 @@ app.get('/api/login/verify', authenticateToken, async (req, res) => {
     // The user data is already verified by the authenticateToken middleware
     // Fetch the latest user data from the database
     const [users] = await pool.query(
-      'SELECT id, first_name, last_name, email, account_type, bio, skills, hourly_rate, avatar_url FROM users WHERE id = ?',
+      'SELECT id, first_name, last_name, email, account_type, bio, skills, hourly_rate, avatar_url, is_verified FROM users WHERE id = ?',
       [req.user.userId]
     );
     
