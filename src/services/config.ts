@@ -8,6 +8,11 @@ export const setToken = (token: string) => localStorage.setItem("token", token);
 export const removeToken = () => localStorage.removeItem("token");
 
 export const handleResponse = async (response: Response) => {
+  if (response.status === 404) {
+    console.error("API endpoint not found:", response.url);
+    throw new Error(`API endpoint not found: ${response.url.split('/').pop()}`);
+  }
+  
   if (response.status === 401) {
     // Handle unauthorized - clear token and reload
     removeToken();

@@ -8,7 +8,7 @@ import SignupForm from "@/components/auth/SignupForm";
 import SocialLogin from "@/components/auth/SocialLogin";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Mail } from "lucide-react";
+import { Mail, AlertCircle } from "lucide-react";
 
 const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +54,9 @@ const Signup = () => {
     setResendingEmail(true);
     try {
       await resendVerificationEmail(registeredEmail);
+      toast.success("Verification email sent", {
+        description: "Please check your inbox (or Ethereal Email for testing)"
+      });
     } catch (error) {
       toast.error("Failed to resend verification email", {
         description: error instanceof Error ? error.message : "Please try again later"
@@ -79,6 +82,14 @@ const Signup = () => {
                 </p>
                 <p className="font-medium text-center">{registeredEmail}</p>
               </div>
+              
+              <Alert className="bg-yellow-50 border-yellow-200">
+                <AlertCircle className="h-4 w-4 text-yellow-600 mr-2" />
+                <AlertDescription>
+                  <span className="font-semibold">Test Environment:</span> For testing, verification emails are sent to Ethereal Email. 
+                  Check the server console output for the email preview URL.
+                </AlertDescription>
+              </Alert>
               
               <Alert className="bg-blue-50 border-blue-200">
                 <AlertDescription>

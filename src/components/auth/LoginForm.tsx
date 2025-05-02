@@ -41,7 +41,12 @@ const LoginForm = ({ onSubmit, isLoading, onForgotPassword }: LoginFormProps) =>
       return;
     }
     
-    await onSubmit(email, password);
+    try {
+      await onSubmit(email, password);
+    } catch (error) {
+      console.error("Form submission error:", error);
+      setValidationError(error instanceof Error ? error.message : "Login failed. Please try again.");
+    }
   };
   
   return (

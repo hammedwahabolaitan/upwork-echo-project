@@ -58,6 +58,7 @@ export const login = async (credentials: LoginCredentials) => {
 
 export const register = async (userData: RegistrationData) => {
   try {
+    console.log("Attempting registration with:", userData);
     const response = await fetch(`${API_URL}/register`, {
       method: "POST",
       headers: {
@@ -73,6 +74,7 @@ export const register = async (userData: RegistrationData) => {
       description: "Please check your email to verify your account."
     });
     
+    console.log("Registration successful, response:", data);
     return data;
   } catch (error) {
     console.error("Registration error:", error);
@@ -82,6 +84,7 @@ export const register = async (userData: RegistrationData) => {
 
 export const verifyEmail = async (token: string) => {
   try {
+    console.log("Attempting to verify email with token:", token);
     const response = await fetch(`${API_URL}/verify-email`, {
       method: "POST", 
       headers: {
@@ -99,6 +102,7 @@ export const verifyEmail = async (token: string) => {
 
 export const resendVerificationEmail = async (email: string) => {
   try {
+    console.log("Resending verification email to:", email);
     const response = await fetch(`${API_URL}/resend-verification`, {
       method: "POST",
       headers: {
@@ -109,7 +113,7 @@ export const resendVerificationEmail = async (email: string) => {
     
     const data = await handleResponse(response);
     toast.success("Verification email sent", {
-      description: "Please check your inbox for the verification link"
+      description: "Note: For testing, check server console for the email preview URL"
     });
     
     return data;
@@ -121,6 +125,7 @@ export const resendVerificationEmail = async (email: string) => {
 
 export const requestPasswordReset = async (email: string) => {
   try {
+    console.log("Requesting password reset for:", email);
     const response = await fetch(`${API_URL}/forgot-password`, {
       method: "POST",
       headers: {
@@ -132,18 +137,25 @@ export const requestPasswordReset = async (email: string) => {
     const data = await handleResponse(response);
     
     toast.success("Password reset email sent", {
-      description: "If your email is registered, you will receive a reset link"
+      description: "Note: For testing, check server console for the email preview URL"
     });
     
     return data;
   } catch (error) {
     console.error("Password reset request error:", error);
-    throw error;
+    if (error instanceof Error && error.message.includes("404")) {
+      toast.error("Server error", {
+        description: "Password reset service is not available. Please contact support."
+      });
+    } else {
+      throw error;
+    }
   }
 };
 
 export const resetPassword = async (token: string, newPassword: string) => {
   try {
+    console.log("Resetting password with token:", token);
     const response = await fetch(`${API_URL}/reset-password`, {
       method: "POST",
       headers: {
