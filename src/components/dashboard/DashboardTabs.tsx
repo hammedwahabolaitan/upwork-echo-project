@@ -1,6 +1,6 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import QuickStats from "./QuickStats";
 import ProfileCompletion from "./ProfileCompletion";
 import RecentActivity from "./RecentActivity";

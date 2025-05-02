@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const QuickStats = () => {

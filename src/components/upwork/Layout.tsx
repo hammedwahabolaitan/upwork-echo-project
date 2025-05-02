@@ -1,7 +1,7 @@
 
 import Header from "./Header";
 import Footer from "./Footer";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import AdminNav from "./AdminNav";
 
 interface LayoutProps {
