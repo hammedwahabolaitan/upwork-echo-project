@@ -18,6 +18,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (userData: any) => Promise<void>;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 export interface LoginCredentials {

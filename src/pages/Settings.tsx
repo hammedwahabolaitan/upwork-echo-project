@@ -24,6 +24,11 @@ const Settings = () => {
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    hourlyRate: user?.hourlyRate || 0
+  });
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -40,6 +45,29 @@ const Settings = () => {
     navigate("/login");
     return null;
   }
+  
+  const handleProfileUpdate = async () => {
+    setLoading(true);
+    try {
+      // In a real app, we would call an API to update the profile
+      // For now, we'll just use the updateUser method to update the local state
+      updateUser({
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        hourlyRate: profileData.hourlyRate
+      });
+      
+      toast("Profile updated", {
+        description: "Your profile has been successfully updated"
+      });
+    } catch (error) {
+      toast("Error updating profile", {
+        description: "There was an error updating your profile"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +147,8 @@ const Settings = () => {
                       <Label htmlFor="firstName">First Name</Label>
                       <Input 
                         id="firstName" 
-                        defaultValue={user.firstName} 
+                        value={profileData.firstName}
+                        onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
                         placeholder="First Name" 
                       />
                     </div>
@@ -127,7 +156,8 @@ const Settings = () => {
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input 
                         id="lastName" 
-                        defaultValue={user.lastName} 
+                        value={profileData.lastName}
+                        onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
                         placeholder="Last Name" 
                       />
                     </div>
@@ -151,7 +181,8 @@ const Settings = () => {
                       <Input 
                         id="hourlyRate" 
                         type="number" 
-                        defaultValue={user.hourlyRate} 
+                        value={profileData.hourlyRate}
+                        onChange={(e) => setProfileData({ ...profileData, hourlyRate: Number(e.target.value) })}
                         placeholder="Hourly Rate"
                       />
                     </div>
@@ -159,8 +190,8 @@ const Settings = () => {
                 </form>
               </CardContent>
               <CardFooter>
-                <Button onClick={() => toast("Profile updated", { description: "Your profile has been updated" })}>
-                  Save Changes
+                <Button onClick={handleProfileUpdate} disabled={loading}>
+                  {loading ? "Saving..." : "Save Changes"}
                 </Button>
               </CardFooter>
             </Card>

@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { User, AuthContextType } from "./types";
-import { getUserFromStorage, verifyAuth } from "./authUtils";
+import { getUserFromStorage, verifyAuth, saveUserToStorage } from "./authUtils";
 import { useAuthService } from "./useAuthService";
 import { removeToken } from "@/services/config";
 
@@ -13,6 +12,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   signup: async () => {},
   logout: () => {},
+  updateUser: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -94,13 +94,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate('/');
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...userData };
+    setUser(updatedUser);
+    saveUserToStorage(updatedUser);
+  };
+
   const contextValue: AuthContextType = {
     user,
     isAuthenticated: !!user,
     isLoading,
     login,
     signup,
-    logout
+    logout,
+    updateUser
   };
 
   return (
