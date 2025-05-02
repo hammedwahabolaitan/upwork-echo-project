@@ -2,7 +2,7 @@
 import { ProfileUpdateData } from './types';
 import { API_URL, getToken, handleResponse } from './config';
 
-export const getProfile = async (id: number) => {
+export const getProfile = async (id: string | number) => {
   try {
     const response = await fetch(`${API_URL}/profile/${id}`);
     return await handleResponse(response);
