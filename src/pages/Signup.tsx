@@ -6,9 +6,13 @@ import { register } from "@/services";
 import { toast } from "@/utils/toastUtils";
 import SignupForm from "@/components/auth/SignupForm";
 import SocialLogin from "@/components/auth/SocialLogin";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Mail } from "lucide-react";
 
 const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationCompleted, setRegistrationCompleted] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (data: {
@@ -29,11 +33,13 @@ const Signup = () => {
         accountType: data.accountType,
       });
       
-      toast("Registration successful", {
-        description: "Your account has been created. Please log in."
-      });
+      // Store the email for confirmation message
+      setRegisteredEmail(data.email);
+      setRegistrationCompleted(true);
       
-      navigate("/login");
+      toast("Registration successful", {
+        description: "Please check your email to verify your account."
+      });
     } catch (error) {
       console.error("Registration error:", error);
       toast("Registration failed", {
@@ -48,20 +54,53 @@ const Signup = () => {
     <Layout>
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Create your account
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Or{" "}
-              <Link to="/login" className="font-medium text-upwork-green hover:text-upwork-darkGreen">
-                log in if you already have an account
-              </Link>
-            </p>
-          </div>
-          
-          <SignupForm onSubmit={handleSubmit} isLoading={isLoading} />
-          <SocialLogin isLoading={isLoading} />
+          {registrationCompleted ? (
+            <div className="bg-white p-8 rounded-lg shadow-sm space-y-6">
+              <div className="flex flex-col items-center">
+                <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <Mail className="h-8 w-8 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-center">Verify your email</h2>
+                <p className="text-gray-600 text-center mt-2">
+                  We've sent a verification email to:
+                </p>
+                <p className="font-medium text-center">{registeredEmail}</p>
+              </div>
+              
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertDescription>
+                  Please check your inbox and click the verification link to activate your account.
+                  If you don't see the email, check your spam folder.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="text-center">
+                <Link 
+                  to="/login"
+                  className="text-upwork-green hover:text-upwork-darkGreen font-medium"
+                >
+                  Return to login
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div>
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                  Create your account
+                </h2>
+                <p className="mt-2 text-center text-sm text-gray-600">
+                  Or{" "}
+                  <Link to="/login" className="font-medium text-upwork-green hover:text-upwork-darkGreen">
+                    log in if you already have an account
+                  </Link>
+                </p>
+              </div>
+              
+              <SignupForm onSubmit={handleSubmit} isLoading={isLoading} />
+              <SocialLogin isLoading={isLoading} />
+            </>
+          )}
         </div>
       </div>
     </Layout>

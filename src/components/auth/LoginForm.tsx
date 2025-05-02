@@ -1,10 +1,11 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, AlertCircle } from "lucide-react";
+import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { toast } from "@/utils/toastUtils";
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<void>;
@@ -15,6 +16,9 @@ const LoginForm = ({ onSubmit, isLoading }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [validationError, setValidationError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
 
   const validateForm = () => {
     setValidationError("");
@@ -40,6 +44,28 @@ const LoginForm = ({ onSubmit, isLoading }: LoginFormProps) => {
     }
     
     await onSubmit(email, password);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) {
+      return;
+    }
+    
+    setIsResetting(true);
+    try {
+      // We'll implement this functionality in the auth service
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+      toast("Password reset email sent", {
+        description: `Instructions have been sent to ${resetEmail}`,
+      });
+    } catch (error) {
+      toast("Failed to send reset email", {
+        description: "Please try again later",
+      });
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   return (
@@ -78,15 +104,22 @@ const LoginForm = ({ onSubmit, isLoading }: LoginFormProps) => {
             <Input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               required
-              className="pl-10"
+              className="pl-10 pr-10"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
             />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
         </div>
       </div>
@@ -104,11 +137,50 @@ const LoginForm = ({ onSubmit, isLoading }: LoginFormProps) => {
           </label>
         </div>
 
-        <div className="text-sm">
-          <a href="#" className="font-medium text-upwork-green hover:text-upwork-darkGreen">
-            Forgot your password?
-          </a>
-        </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <button 
+              type="button" 
+              className="text-sm font-medium text-upwork-green hover:text-upwork-darkGreen"
+            >
+              Forgot your password?
+            </button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reset password</DialogTitle>
+              <DialogDescription>
+                Enter your email address and we'll send you instructions to reset your password.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleResetPassword}>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input
+                    id="reset-email"
+                    placeholder="name@example.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isResetting}>
+                  {isResetting ? (
+                    <div className="flex items-center">
+                      <Spinner className="w-4 h-4 mr-2 border-2 border-t-2 border-white" />
+                      Sending...
+                    </div>
+                  ) : (
+                    "Send reset instructions"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div>

@@ -1,17 +1,23 @@
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "sonner";
 import LoginForm from "@/components/auth/LoginForm";
 import SocialLogin from "@/components/auth/SocialLogin";
+import { verifyEmail } from "@/services/auth";
+import { AlertCircle, CheckCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<null | 'success' | 'error'>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { login, user, isAuthenticated } = useAuth();
+  const [searchParams] = useSearchParams();
+  const verificationToken = searchParams.get('verify');
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -19,6 +25,31 @@ const Login = () => {
       navigate('/dashboard');
     }
   }, [isAuthenticated, user, navigate]);
+
+  // Handle email verification if token is present
+  useEffect(() => {
+    if (verificationToken) {
+      const verifyUserEmail = async () => {
+        setIsLoading(true);
+        try {
+          await verifyEmail(verificationToken);
+          setVerificationStatus('success');
+          toast.success("Email verification successful", {
+            description: "You can now log in to your account"
+          });
+        } catch (error) {
+          setVerificationStatus('error');
+          toast.error("Email verification failed", {
+            description: "The verification link may have expired or is invalid"
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      verifyUserEmail();
+    }
+  }, [verificationToken]);
 
   // Get the location they were trying to access or default to dashboard
   const from = (location.state as any)?.from?.pathname || "/dashboard";
@@ -55,6 +86,26 @@ const Login = () => {
               </Link>
             </p>
           </div>
+          
+          {verificationStatus === 'success' && (
+            <Alert variant="default" className="bg-green-50 border-green-200">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <AlertTitle>Email Verified!</AlertTitle>
+              <AlertDescription>
+                Your email has been successfully verified. You can now log in.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {verificationStatus === 'error' && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Verification Failed</AlertTitle>
+              <AlertDescription>
+                The verification link may have expired or is invalid.
+              </AlertDescription>
+            </Alert>
+          )}
           
           <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
           <SocialLogin isLoading={isLoading} />
