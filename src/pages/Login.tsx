@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import Layout from "@/components/upwork/Layout";
@@ -11,6 +10,7 @@ import { CheckCircle, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import EmailVerificationForm from "@/components/auth/EmailVerificationForm";
 import PasswordResetDialog from "@/components/auth/PasswordResetDialog";
+import { Button } from "@/components/ui/button";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
